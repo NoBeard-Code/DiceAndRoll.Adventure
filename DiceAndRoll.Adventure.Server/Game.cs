@@ -1,4 +1,6 @@
 ﻿using DiceAndRoll.Adventure.Server.Models;
+using DiceAndRoll.Adventure.Shared.Grains;
+using DiceAndRoll.Adventure.Shared.Models;
 using Newtonsoft.Json;
 
 namespace DiceAndRoll.Adventure.Server;
@@ -16,15 +18,16 @@ internal sealed class Game(IGrainFactory grainFactory)
         // Initialize the game world using the game data
         foreach (var location in data.Locations)
         {
-            if (location == null) continue;
             await AddLocationAsync(location);
         }
     }
 
-    private async Task AddLocationAsync(Location location)
+    private async Task<ILocationGrain> AddLocationAsync(LocationInfo location)
     {
         Console.WriteLine("Adding location: {0}", location.Name);
 
-        //var grain = grainFactory.GetGrain<ILocationGrain>();
+        var grain = grainFactory.GetGrain<ILocationGrain>(location.Name);
+        await grain.ConfigureAsync(location);
+        return grain;
     }
 }

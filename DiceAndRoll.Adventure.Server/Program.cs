@@ -22,6 +22,7 @@ var builder = Host.CreateDefaultBuilder(args);
 builder.UseOrleans(siloBuilder =>
 {
     siloBuilder.UseLocalhostClustering();
+    siloBuilder.AddMemoryGrainStorage("game");
 });
 
 var host = builder.Build();   
