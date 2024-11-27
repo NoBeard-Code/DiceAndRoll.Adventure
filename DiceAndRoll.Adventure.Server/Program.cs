@@ -1,4 +1,5 @@
 ﻿using DiceAndRoll.Adventure.Server;
+using DiceAndRoll.Adventure.Server.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Reflection;
@@ -25,6 +26,11 @@ builder.UseOrleans(siloBuilder =>
     siloBuilder.AddMemoryGrainStorage("game");
 });
 
+builder.ConfigureServices(services => {
+    services.AddSingleton<Game>();
+    services.AddSingleton<ICharacterService, CharacterService>();
+    });
+
 var host = builder.Build();   
 
 await host.StartAsync();
@@ -33,8 +39,7 @@ Console.WriteLine("Map file name is '{0}'.", campaignFile);
 Console.WriteLine("Setting up Dice & Roll Adventure game, please wait ...");
 
 // Initialize the game world
-var client = host.Services.GetRequiredService<IGrainFactory>();
-var adventure = new Game(client);
+var adventure = host.Services.GetRequiredService<Game>();
 await adventure.StartAsync(campaignFile);
 
 Console.WriteLine("Game setup completed.");

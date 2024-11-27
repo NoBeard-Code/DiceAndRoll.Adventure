@@ -7,10 +7,13 @@ internal sealed class LocationGrain(
     [PersistentState("location", "game")] IPersistentState<LocationInfo> state) 
     : Grain, ILocationGrain
 {
-    private readonly Dictionary<string, ILocationGrain> _connections = new();
+    private readonly Dictionary<string, ILocationGrain> _connections = [];
 
     public Task ConfigureAsync(LocationInfo info)
     {
+        if (state.RecordExists) 
+            return Task.CompletedTask; 
+
         state.State = info;
         state.WriteStateAsync();
 
