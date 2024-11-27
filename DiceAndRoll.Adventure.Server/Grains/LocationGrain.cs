@@ -8,8 +8,9 @@ internal sealed class LocationGrain(
     : Grain, ILocationGrain
 {
     private readonly Dictionary<string, ILocationGrain> _connections = [];
+    private readonly List<string> _players = [];
 
-    public Task ConfigureAsync(LocationInfo info)
+    public Task Configure(LocationInfo info)
     {
         if (state.RecordExists) 
             return Task.CompletedTask; 
@@ -26,6 +27,12 @@ internal sealed class LocationGrain(
             }
         }
 
+        return Task.CompletedTask;
+    }
+
+    public Task Enter(string playerName)
+    {
+        _players.Add(playerName);
         return Task.CompletedTask;
     }
 }

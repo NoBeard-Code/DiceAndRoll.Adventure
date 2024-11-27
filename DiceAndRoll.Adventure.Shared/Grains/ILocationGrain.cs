@@ -4,5 +4,7 @@ namespace DiceAndRoll.Adventure.Shared.Grains;
 
 public interface ILocationGrain : IGrainWithStringKey
 {
-    Task ConfigureAsync(LocationInfo data);
+    Task Configure(LocationInfo data);
+
+    Task Enter(string playerName);
 }

@@ -65,7 +65,7 @@ var name = AnsiConsole.Prompt(
 var client = host.Services.GetRequiredService<IClusterClient>();
 var player = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
 
-var characters = await player.GetCharactersAsync();
+var characters = await player.GetCharacters();
 
 var prompt = AnsiConsole.Prompt(
     new SelectionPrompt<string>()
@@ -84,7 +84,7 @@ AnsiConsole.Status()
     .SpinnerStyle(Style.Parse("green bold"))
     .Start("Entering the game...", ctx =>
     {
-        player.JoinGameAsync(name, character!);
+        player.JoinGame(name, character!);
         Thread.Sleep(1000);
     });
 

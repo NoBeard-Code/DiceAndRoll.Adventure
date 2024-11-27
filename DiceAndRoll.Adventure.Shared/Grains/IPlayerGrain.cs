@@ -4,7 +4,7 @@ namespace DiceAndRoll.Adventure.Shared.Grains;
 
 public interface IPlayerGrain : IGrainWithGuidKey
 {
-    Task<List<CharacterInfo>> GetCharactersAsync();
+    Task<List<CharacterInfo>> GetCharacters();
 
-    Task JoinGameAsync(string name, CharacterInfo character);
+    Task JoinGame(string name, CharacterInfo character);
 }

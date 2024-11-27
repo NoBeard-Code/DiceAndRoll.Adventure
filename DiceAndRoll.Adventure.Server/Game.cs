@@ -27,7 +27,7 @@ internal sealed class Game(IGrainFactory grainFactory)
         Console.WriteLine("Adding location: {0}", location.Name);
 
         var grain = grainFactory.GetGrain<ILocationGrain>(location.Name);
-        await grain.ConfigureAsync(location);
+        await grain.Configure(location);
         return grain;
     }
 }
