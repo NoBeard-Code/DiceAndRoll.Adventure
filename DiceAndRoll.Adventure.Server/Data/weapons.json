@@ -1,0 +1,248 @@
+{
+    "revolvers": {
+        "name": "revolvers",
+        "title": "Revolvers",
+        "desc": "Quick firearm weapon famous in the West",
+        "type": "FIREARMS",
+        "attack": 1
+    }, 
+    "hunting_revolvers": {
+        "name": "hunting_revolvers",
+        "title": "Hunting revolvers",
+        "desc": "Used for shooting in the wild, give power shots",
+        "type": "FIREARMS",
+        "attack": 4,
+        "sound": ""
+    }, 
+    "sherrifs_sidearm": {
+        "name": "sherrifs_sidearm",
+        "title": "Sherrif's sidearm",
+        "desc": "Can't beat the sherrif's power when comes the shooting",
+        "type": "FIREARMS",
+        "attack": 7
+    }, 
+    "peacemaker": {
+        "name": "peacemaker",
+        "title": "Peacemaker",
+        "desc": "There is a reason this thing is called that, peace be with their souls",
+        "type": "FIREARMS",
+        "attack": 9
+    }, 
+    "steam_pipe": {
+        "name": "steam_pipe",
+        "title": "Steam pipe",
+        "desc": "A pipe used in the boiler rooms of the Great city",
+        "type": "BLUNT",
+        "attack": 1
+    },  
+    "pickaxe": {
+        "name": "pickaxe",
+        "title": "Pickaxe",
+        "desc": "Multipurpose tool for mining, grave digging and so",
+        "type": "BLUNT",
+        "attack": 2
+    },  
+    "wrench": {
+        "name": "wrench",
+        "title": "Wrench",
+        "desc": "Handy tool for fixing everything including enemies",
+        "type": "BLUNT",
+        "attack": 4
+    },  
+    "forge_hammer": {
+        "name": "forge_hammer",
+        "title": "Forge hammer",
+        "desc": "Great blunt weapon used by the blacksmiths and automatons",
+        "type": "BLUNT",
+        "attack": 6
+    },  
+    "musket": {
+        "name": "musket",
+        "title": "Musket",
+        "desc": "A standard weapon for fighting in the trenches",
+        "type": "FIREARMS",
+        "attack": 1
+    },  
+    "arquebus": {
+        "name": "arquebus",
+        "title": "Aquebus",
+        "desc": "An advanced weapon for handling heavy number of troops",
+        "type": "FIREARMS",
+        "attack": 4
+    },  
+    "shotgun": {
+        "name": "shotgun",
+        "title": "Shotgun",
+        "desc": "A weapon used for hunting purposes, including humans",
+        "type": "FIREARMS",
+        "attack": 7
+    },  
+    "scoped_rifle": {
+        "name": "scoped_rifle",
+        "title": "Scoped rifle",
+        "desc": "A precise gun meant for long range shots from a distance",
+        "type": "FIREARMS",
+        "attack": 9
+    },  
+    "explosive_bomb": {
+        "name": "explosive_bomb",
+        "title": "Explosive bomb",
+        "desc": "A basic missile typed weapon for every decent alchemist",
+        "type": "MISSILE",
+        "attack": 1
+    },  
+    "molotov_coctail": {
+        "name": "molotov_coctail",
+        "title": "Molotov coctail",
+        "desc": "A makeshift bomb made from alcohol base and highly flammable unit",
+        "type": "MISSILE",
+        "attack": 2
+    },  
+    "frag_grenade": {
+        "name": "frag_grenade",
+        "title": "Frag grenade",
+        "desc": "Used on the fronts for dealing great fragmentation damage",
+        "type": "MISSILE",
+        "attack": 4
+    },  
+    "dragon_breath": {
+        "name": "dragon_breath",
+        "title": "Dragon breath",
+        "desc": "Extraordinary weapon dealing maximum damage to enemies",
+        "type": "MISSILE",
+        "attack": 7
+    },  
+    "dagger": {
+        "name": "dagger",
+        "title": "Dagger",
+        "desc": "A weapon mandatory for every assasin killing in the dark",
+        "type": "BLADE",
+        "attack": 1
+    },  
+    "razor": {
+        "name": "razor",
+        "title": "Razor",
+        "desc": "Sharp small blade for quick executing the enemy unit",
+        "type": "BLADE",
+        "attack": 4
+    },  
+    "shadow_blade": {
+        "name": "shadow_blade",
+        "title": "Shadow blade",
+        "desc": "Lethal blade made especially for dealing bleeding damage",
+        "type": "BLADE",
+        "attack": 8
+    },  
+    "throat_slitter": {
+        "name": "throat_slitter",
+        "title": "Throat slitter",
+        "desc": "A blade that many fear due its cunning and lethal properties",
+        "type": "BLADE",
+        "attack": 10
+    },  
+    "deck_of_cards": {
+        "name": "deck_of_cards",
+        "title": "Deck of cards",
+        "desc": "A normal lot of cards dealing damage with their sharp edges",
+        "type": "BLADE",
+        "attack": 1
+    },
+    "blackjack": {
+        "name": "blackjack",
+        "title": "Blackjack",
+        "desc": "An advanced cards damaging opponents with their sharp cuts",
+        "type": "BLADE",
+        "attack": 2
+    },
+    "poker_cards": {
+        "name": "poker_cards",
+        "title": "Poker cards",
+        "desc": "A famous deck of cards heavily damaging the enemies",
+        "type": "BLADE",
+        "attack": 4
+    },
+    "joker_card": {
+        "name": "joker_card",
+        "title": "Joker card",
+        "desc": "A special cunning card that kills enemies as a stout",
+        "type": "BLADE",
+        "attack": 6
+    },
+
+
+
+
+
+
+
+    "claws": {
+        "name": "claws",
+        "title": "Claws",
+        "desc": "Razor-sharp fingernails of an undead creature",
+        "type": "BLADE",
+        "attack": 1
+    },
+    "cutlass": {
+        "name": "cutlass",
+        "title": "Cutlass",
+        "desc": "A famous weapon used by many sailors",
+        "type": "BLADE",
+        "attack": 1
+    },
+    "strings": {
+        "name": "strings",
+        "title": "Strings",
+        "desc": "Ones used for theatrical performances now used to kill",
+        "type": "MISSILE",
+        "attack": 2
+    },
+    "sceptre": {
+        "name": "sceptre",
+        "title": "Sceptre",
+        "desc": "Hard and heavy golden rod inflicts blunt damage",
+        "type": "BLADE",
+        "attack": 2
+    },
+    "poison": {
+        "name": "poison",
+        "title": "Poison",
+        "desc": "Sick purpose is this weapon's aim, very deadly",
+        "type": "POTION",
+        "attack": 2
+    },
+    "clutches": {
+        "name": "clutches",
+        "title": "Clutches",
+        "desc": "Very sharp claws of a menevolent creature attack viciously",
+        "type": "CLAWS",
+        "attack": 2
+    },
+    "bite": {
+        "name": "bite",
+        "title": "Bite",
+        "desc": "Very sharp teeth of the monstrous serpent deal deep wounds",
+        "type": "CLAWS",
+        "attack": 2
+    },
+    "spores": {
+        "name": "spores",
+        "title": "Spores",
+        "desc": "Venom spores from the fungus caster throws at a distance",
+        "type": "CLAWS",
+        "attack": 1
+    },
+    "branch": {
+        "name": "branch",
+        "title": "Branch",
+        "desc": "Wood creatures fight with their branches that vip the victims hard",
+        "type": "CLAWS",
+        "attack": 1
+    },
+    "lightning": {
+        "name": "lightning",
+        "title": "Lightning",
+        "desc": "Doctor Sibros uses his powers to call the thunderbolt on enemies",
+        "type": "CLAWS",
+        "attack": 2
+    }
+}

@@ -1,0 +1,779 @@
+{
+  "name": "Dice & Roll 2 - A Lighthouse Tale",
+  "locations": [
+    {
+      "name": "lighthouse",
+      "title": "Lighthouse",
+      "description": "blablabla",
+      "type": "camp",
+      "terrain": "start",
+      "x": 428,
+      "y": 2152,
+      "connectsTo": [
+        "fishermans_village"
+      ]
+    },
+    {
+      "name": "fishermans_village",
+      "title": "Fisherman's village",
+      "description": "Not far from the Lighthouse a collection of houses can be seen. Many nets and boats have been left to rot and the place seems to have been abandoned in a hurry. From who or what did they flee, is yet unknown…",
+      "type": "encounter",
+      "terrain": "beach",
+      "x": 606,
+      "y": 1788,
+      "connectsTo": [
+        "cliffside_keep"
+      ],
+      "enemies": [
+        "seabound_sailor",
+        "seabound_sailor"
+      ]
+    },
+    {
+      "name": "cliffside_keep",
+      "title": "Cliffside keep",
+      "description": "A Leviathan stands upon the black ridge, resisting the slashes of the raging sea. Already has the sea taken a bite and left a deep gash, from which the cold water of the bay can seep in.",
+      "type": "encounter",
+      "terrain": "ruins",
+      "x": 877,
+      "y": 1885,
+      "connectsTo": [
+        "fallen_tower",
+        "shipwreck"
+      ],
+      "enemies": [
+        "seabound_sailor",
+        "serpent"
+      ],
+      "reward": {
+        "mana": 10
+      }
+    },
+    {
+      "name": "shipwreck",
+      "title": "Shipwreck",
+      "description": "An old corroding wreck captivated by the unforgiving sea seems to be stranded upon the shore of this strange land. In its bowls men can bee seen… dead men. Lost souls bound to this place forever.",
+      "type": "encounter",
+      "terrain": "beach",
+      "x": 1002,
+      "y": 2148,
+      "connectsTo": [
+        "cliffside_keep",
+        "sirens_cove"
+      ],
+      "enemies": [
+        "seabound_sailor",
+        "seabound_captain"
+      ],
+      "enemyMana": 120
+    },
+    {
+      "name": "sirens_cove",
+      "title": "Siren's cove",
+      "description": "Strange noises seem to come from this cove. Song and waves are intermingled in a strange and eary symphony that pulses the listener closer and closer. For this voices are from sirens whose enchanting voices are too beautiful to resist.",
+      "type": "encounter",
+      "terrain": "beach",
+      "x": 983,
+      "y": 2259,
+      "connectsTo": [
+        "cliffside_keep",
+        "screaming_grotto"
+      ],
+      "enemies": [
+        "siren",
+        "siren",
+        "siren"
+      ],
+      "enemyMana": 120
+    },
+    {
+      "name": "screaming_grotto",
+      "title": "Screaming grotto",
+      "description": "On the southern most end of the bay, a spire of stone emerges from the sea. As the wind smashes against the hollow rocks, bonechilling sounds can be heard, echoing for miles upon miles deterring any adventures from anchoring their ships.",
+      "type": "encounter",
+      "terrain": "beach",
+      "x": 519,
+      "y": 2443,
+      "connectsTo": [
+        "cliffside_keep"
+      ],
+      "enemies": [
+        "siren",
+        "serpent",
+        "serpent",
+        "siren"
+      ],
+      "enemyMana": 160,
+      "reward": {
+        "mana": 20
+      }
+    },
+    {
+      "name": "fallen_tower",
+      "title": "Fallen tower",
+      "description": "As the sea faids into the distance and as the open grasslands emerge from the fog carried by the sea, a great vanguard can be seen securing the western passage to the once great city of Lanervin.",
+      "type": "encounter",
+      "terrain": "hills",
+      "x": 1070,
+      "y": 1682,
+      "connectsTo": [
+        "cliffside_keep",
+        "redwood_crossing",
+        "delmond_keep"
+      ],
+      "enemies": [
+        "corpse",
+        "grave_digger"
+      ],
+      "enemyMana": 120
+    },
+    {
+      "name": "redwood_crossing",
+      "title": "Redwood crossing",
+      "description": "Here the western passage splits by two. One heading to the east to the Tondor highlands and other to the west to the great glooming forest. Fresh tracks seem to have been left on the road signalising the presense of an unknown stalker.",
+      "type": "encounter",
+      "terrain": "hills",
+      "x": 1161,
+      "y": 1470,
+      "connectsTo": [
+        "scorched_windmill",
+        "thorn_gate",
+        "fallen_tower"
+      ],
+      "enemies": [
+        "hoblum",
+        "gnilur"
+      ],
+      "enemyMana": 120
+    },
+    {
+      "name": "scorched_windmill",
+      "title": "Scorched windmill",
+      "description": "A lonely windmill seems to have been partially burned down by a fire of unknown origin. Scorched and blackened by sutt it does seem uninhabited although loud growls seem to suggest otherwise.",
+      "type": "encounter",
+      "terrain": "hills",
+      "x": 852,
+      "y": 1480,
+      "connectsTo": [
+        "hunters_lodge",
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "construct",
+        "grave_digger"
+      ],
+      "enemyMana": 150
+    },
+    {
+      "name": "hunters_lodge",
+      "title": "Hunter's lodge",
+      "description": "A Hunter's lodge stand abandoned, abraced by the strong oak trees that call the Glooming forest their home. Truly, as days turn into weeks and weeks into months, strong memories once charished now fade as the old world disappears before eyes.",
+      "type": "encounter",
+      "terrain": "forest",
+      "x": 859,
+      "y": 1313,
+      "connectsTo": [
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "hoblum",
+        "fey",
+        "gnilur"
+      ],
+      "enemyMana": 140,
+      "reward": {
+        "mana": 10
+      }
+    },
+    {
+      "name": "thorn_gate",
+      "title": "Thorn gate",
+      "description": "Thorn gate, a door far older then all of the towers and keeps of the great Karon. The great warden of the forest, said to have survived all the wars and wildfires of this age, so that it can keep watch upon the people unlucky enough to enter its mouth.",
+      "type": "encounter",
+      "terrain": "forest",
+      "x": 1434,
+      "y": 1360,
+      "connectsTo": [
+        "old_willow",
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "hoblum",
+        "hoblum"
+      ],
+      "enemyMana": 120
+    },
+    {
+      "name": "old_willow",
+      "title": "Old willow",
+      "description": "An easy breeze accompanies the calming song of birds nesting on the top branches of the old willow. Its roots are deep and untainted by the Eather, it serves as a sanctuary for all that seek shelter in these troublesome times.",
+      "type": "encounter",
+      "terrain": "forest",
+      "x": 1525,
+      "y": 1031,
+      "connectsTo": [
+        "tainted_well",
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "fey",
+        "hoblum",
+        "fey"
+      ],
+      "enemyMana": 160
+    },
+    {
+      "name": "tainted_well",
+      "title": "Tainted well",
+      "description": "As the Eather moved through the land, it gradually started poisoning the rivers and lakes. Like poison running through veins, it blackened every pond and spring releasing old creatures long forgotten into the waters of the world.",
+      "type": "encounter",
+      "terrain": "swamp",
+      "x": 1821,
+      "y": 839,
+      "connectsTo": [
+        "madmans_bridge",
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "serpent",
+        "gnilur",
+        "serpent"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "madmans_bridge",
+      "title": "Madman's bridge",
+      "description": "Long were stories told of an old bridge deep inside the forest from which unexplained laughter can be heard. There is no explanation for the reason why it was built, and people seem to vanish there.",
+      "type": "encounter",
+      "terrain": "forest",
+      "x": 1909,
+      "y": 437,
+      "connectsTo": [
+        "old_theatre",
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "harlequin",
+        "harlequin"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "old_theatre",
+      "title": "Old theatre",
+      "description": "Many things are mysterious in the Glooming forest and there is surely nothing more curious than the old theatre stranded in the middle of this great wilderness. Many dolls and puppets can by seen giving this place a feeling of being watched.",
+      "type": "encounter",
+      "terrain": "ruins",
+      "x": 2137,
+      "y": 309,
+      "connectsTo": [
+        "lonely_cabin",
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "harlequin",
+        "puppeteer",
+        "harlequin"
+      ],
+      "enemyMana": 160,
+      "reward": {
+        "mana": 20
+      }
+
+    },
+    {
+      "name": "lonely_cabin",
+      "title": "Lonely cabin",
+      "description": "Travelling on the western passage you will come across a wooden cabin. Its windows are broken, and its roof moldy, yet the fireplace is still burning. A cattle hangs above it, and as the day passes and the night settles, the once lonely cabin is lonely no more.",
+      "type": "encounter",
+      "terrain": "forest",
+      "x": 2395,
+      "y": 553,
+      "connectsTo": [
+        "the_hollow",
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "krone",
+        "krone",
+        "fey"
+      ],
+      "enemyMana": 160
+    },
+    {
+      "name": "the_hollow",
+      "title": "The hollow",
+      "description": "Many people get lost in these woods for its treetops block the light of the sun, yet there is a clearing, a shallow mound where no tree or plant yet grows. A melishious creature stokes this grounds making this passage even more difficult.",
+      "type": "encounter",
+      "terrain": "hills",
+      "x": 2382,
+      "y": 818,
+      "connectsTo": [
+        "the_western_gate",
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "wendigo",
+        "wendigo"
+      ],
+      "enemyMana": 180
+    },
+    {
+      "name": "the_western_gate",
+      "title": "The western gate",
+      "description": "The great wilderness stops at the western gates, hindered by the strong wall built to keep the large forest in check and all the inhabitants in it. Its builders are now long dead yet its foundations are still strong.",
+      "type": "encounter",
+      "terrain": "forest",
+      "x": 2154,
+      "y": 1192,
+      "connectsTo": [
+        "hagville",
+        "redwood_crossing"
+      ],
+      "enemies": [
+        "wendigo",
+        "gnilur",
+        "fey"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "hagville",
+      "title": "Hagville",
+      "description": "A well known settlement built by the fearsome pilgrims who settled this land, overlooking the vast and once heavily populated valley of the Karon river. Its name stems from its notorious history of having the famous witch trials.",
+      "type": "encounter",
+      "terrain": "city",
+      "x": 2245,
+      "y": 1492,
+      "connectsTo": [
+        "eldridge_ruins",
+        "city_gate"
+      ],
+      "enemies": [
+        "krone",
+        "krone",
+        "krone"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "eldridge_ruins",
+      "title": "Eldridge ruins",
+      "description": "Once there was a king sitting on this throne, a wicked man he was, for he seeked power and influence over everything else. He sent both of his sons to the sickend streets of Lanervin, for in his mind it was a way to get rid of his throne-seeking rivals. He never left his throne…and so he died alone and unwanted, the great king of old.",
+      "type": "encounter",
+      "terrain": "ruins",
+      "x": 1842,
+      "y": 1475,
+      "connectsTo": [
+        "bog_crossing",
+        "hagville"
+      ],
+      "enemies": [
+        "corpse",
+        "corpse",
+        "grave_digger"
+      ],
+      "enemyMana": 140,
+      "reward": {
+        "mana": 10
+      }
+    },
+    {
+      "name": "bog_crossing",
+      "title": "Bog crossing",
+      "description": "A vast land stretches to the east. Great marshlands of Gorwich. Waiving paths appear and disappear, broken by the murky waters of the Karon. Stay on the path, for if you stray from it, you will never find the way back.",
+      "type": "encounter",
+      "terrain": "swamp",
+      "x": 1807,
+      "y": 1687,
+      "connectsTo": [
+        "delmond_keep",
+        "sunken_graveyard",
+        "eldridge_ruins",
+        "hagville"
+      ],
+      "enemies": [
+        "gnilur",
+        "krone",
+        "serpent"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "delmond_keep",
+      "title": "Delmond keep",
+      "description": "Another watcher sits on the shore of the Fading sea. Long gone were the days of its splendor and many things once cherished are no more: the song, the food, the laughter. All are just a distant call of memory.",
+      "type": "encounter",
+      "terrain": "hills",
+      "x": 1511,
+      "y": 1870,
+      "connectsTo": [
+        "fallen_tower",
+        "bog_crossing"
+      ],
+      "enemies": [
+        "seabound_sailor",
+        "seabound_captain",
+        "seabound_sailor"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "sunken_graveyard",
+      "title": "Sunken graveyard",
+      "description": "Whispers can be heard emanating from the cold tombstones half semerged in the muddy water. Stones stacked on each other, creating small islands of dirt and bone. Strange siluettes move around the pits…",
+      "type": "encounter",
+      "terrain": "swamp",
+      "x": 1892,
+      "y": 1898,
+      "connectsTo": [
+        "snatchers_hideout",
+        "bog_crossing"
+      ],
+      "enemies": [
+        "corpse",
+        "grave_digger",
+        "gnilur"
+      ],
+      "enemyMana": 160
+    },
+    {
+      "name": "snatchers_hideout",
+      "title": "Snatcher's hideout",
+      "description": "On the west-most point of the delta, a small hut can be seen. The place smells of death and decay, for this was the hideout of the Dogsnouth killer. He is long dead, but his spirit still indures, looking for more victims.",
+      "type": "encounter",
+      "terrain": "swamp",
+      "x": 1795,
+      "y": 2048,
+      "connectsTo": [
+        "old_battlefield",
+        "bog_crossing"
+      ],
+      "enemies": [
+        "wendigo",
+        "krone"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "old_battlefield",
+      "title": "Old battlefield",
+      "description": "The weak soil is littered by the remains of the dead, from a war long forgotten. The bog drenched in blood, hiding the warriors of old with all of their arms. A great curse lies over this place…so choose your way wisely.",
+      "type": "encounter",
+      "terrain": "hills",
+      "x": 1994,
+      "y": 2023,
+      "connectsTo": [
+        "krones_nest",
+        "bog_crossing"
+      ],
+      "enemies": [
+        "corpse",
+        "banshee",
+        "corpse"
+      ],
+      "enemyMana": 160
+    },
+    {
+      "name": "krones_nest",
+      "title": "Krone's nest",
+      "description": "Stories were told of three old women chanting nearby town. They spoke in a old tongue, unknown and unheard. It was said that every night there were chanting in front of an idol. Folks started to grew suspicius after children started to go missing. So they drove off the wicked sisters and they fled to a place the locals call Krone's nest.",
+      "type": "encounter",
+      "terrain": "swamp",
+      "x": 1996,
+      "y": 2183,
+      "connectsTo": [
+        "farnath",
+        "candlelight",
+        "bog_crossing"
+      ],
+      "enemies": [
+        "krone",
+        "fey",
+        "krone"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "candlelight",
+      "title": "Candlelight",
+      "description": "A village always engulfed in fog stands in the constant shadow of the Red keep. A dangerous place, harrased by the likes of the dead. Many candles are lit, giving this place an eary quality as well as its name: Candellight.",
+      "type": "encounter",
+      "terrain": "city",
+      "x": 2321,
+      "y": 2334,
+      "connectsTo": [
+        "krones_nest",
+        "farnath",
+        "southern_beacon",
+        "the_red_keep",
+        "bog_crossing"
+      ],
+      "enemies": [
+        "harlequin",
+        "banshee",
+        "harlequin"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "southern_beacon",
+      "title": "Southern beacon",
+      "description": "In times of need, great tongues of flame would be lit on this tower. Its light would be seen far to the west, calling if needed the great voyagers of Rodor. For some unknown reason this was newer done, inspite of the greatest calamity that has ever struck this forsaken land.",
+      "type": "encounter",
+      "terrain": "beach",
+      "x": 2076,
+      "y": 2495,
+      "connectsTo": [
+        "candlelight"
+      ],
+      "enemies": [
+        "siren",
+        "seabound_captain",
+        "siren",
+        "serpent"
+      ],
+      "enemyMana": 140,
+      "reward": {
+        "mana": 10
+      }
+    },
+    {
+      "name": "the_red_keep",
+      "title": "The red keep",
+      "description": "Atop the white stones that protrude from the thick foliage of the southern expanse, sits a castle. Its name notorious, for in its walls lives a creature, powerful and horred. A vampire from the east, born in the deepest pits of the unending void, now only known as the Duke.",
+      "type": "encounter",
+      "terrain": "ruins",
+      "x": 2545,
+      "y": 2515,
+      "connectsTo": [
+        "candlelight",
+        "bog_crossing"
+      ],
+      "enemies": [
+        "banshee",
+        "vampire",
+        "banshee"
+      ],
+      "enemyMana": 180
+    },
+    {
+      "name": "farnath",
+      "title": "Farnath",
+      "description": "The western passage is vast, long and dangerous, but there is another way to the City. On the river's sandy shores, a warden watches over the passing ships. Borderwatch, protecting the north from the wild south.",
+      "type": "encounter",
+      "terrain": "hills",
+      "x": 2281,
+      "y": 2059,
+      "connectsTo": [
+        "candlelight",
+        "karon_keep",
+        "krones_nest",
+        "bog_crossing"
+      ],
+      "enemies": [
+        "banshee",
+        "grave_digger",
+        "banshee"
+      ],
+      "enemyMana": 160
+
+    },
+    {
+      "name": "karon_keep",
+      "title": "Karon keep",
+      "description": "On the eastern bank of the river Karon lies a lonely tower which overlooks the southern entrance to Lanervin. Still, the crests of its former masters indure on its crumbled exterior. But wait…something is moving within its walls…",
+      "type": "encounter",
+      "terrain": "ruins",
+      "x": 2604,
+      "y": 1953,
+      "connectsTo": [
+        "bog_crossing",
+        "krones_nest"
+      ],
+      "enemies": [
+        "banshee",
+        "puppeteer",
+        "harlequin"
+      ],
+      "enemyMana": 140,
+      "reward": {
+        "mana": 10
+      }
+    },
+    {
+      "name": "city_gate",
+      "title": "City gate",
+      "description": "The great gates of Lanervin. Lined with preciocus metals and incrested by the great moonstones of the Summerset. Now these doors lay open, broken and scorched, there purpose now long lost. A great desolation opens to the north – Lanervin… finally.",
+      "type": "encounter",
+      "terrain": "hills",
+      "x": 2703,
+      "y": 1446,
+      "connectsTo": [
+        "kings_bridge"
+      ],
+      "enemies": [
+        "construct",
+        "construct"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "kings_bridge",
+      "title": "King's bridge",
+      "description": "The last standing bridge on the Great Karon, anchtored by the strongest timber and laced by stones from the Hammertops. Nowadays its hardly ever crossed. No wonder, its located in the hearth of this great wasteland.",
+      "type": "encounter",
+      "terrain": "city",
+      "x": 2944,
+      "y": 1520,
+      "connectsTo": [
+        "citadel",
+        "bazaar"
+      ],
+      "enemies": [
+        "construct",
+        "plague_doctor",
+        "corpse"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "citadel",
+      "title": "Citadel",
+      "description": "Of all the great wardens, keeps and forts of this land there is but one whose beauty is unmatched by any. The king's fort, the lord's great eirloom – the city citadel. Light glances of its marble walls. Banners of old wave in the chilling north wind displaying the krests and emblems of now dead dynasties.",
+      "type": "encounter",
+      "terrain": "ruins",
+      "x": 2782,
+      "y": 1580,
+      "connectsTo": [
+        "bazaar",
+        "hagville"
+      ],
+      "enemies": [
+        "banshee",
+        "puppeteer",
+        "banshee"
+      ],
+      "enemyMana": 140,
+      "reward": {
+        "mana": 10
+      }
+    },
+    {
+      "name": "bazaar",
+      "title": "Bazaar",
+      "description": "Many traders from all around the world came to this place, trading with precious fabrics, beautiful jewels and valued spices. Once the beating heart of the city - now an empty crossroad in a lost Realm.",
+      "type": "encounter",
+      "terrain": "city",
+      "x": 3155,
+      "y": 1457,
+      "connectsTo": [
+        "kings_bridge",
+        "citadel",
+        "the_slums",
+        "college_courtyard",
+        "northern_passage"
+      ],
+      "enemies": [
+        "corpse",
+        "plague_doctor",
+        "harlequin"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "the_slums",
+      "title": "The slums",
+      "description": "No one was spared by the great Eather. The first victims fell at this place. It spread rapidly – first it was your neighbour - than you and your intire family and then the whole block. Bodies started to pile up and the streets became infested with rats as large as cats. Dark were those days for the cries of the dying can still be heard.",
+      "type": "encounter",
+      "terrain": "city",
+      "x": 3184,
+      "y": 1567,
+      "connectsTo": [
+        "bazaar",
+        "college_courtyard"
+      ],
+      "enemies": [
+        "krone",
+        "plague_doctor",
+        "krone"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "college_courtyard",
+      "title": "College courtyard",
+      "description": "As the Karon meandres through the city it separates in two. So it was that the people fled from the vast to the East. The great college established a regiment of the best doctors and students to travel to the sickened streets of east Lanervin. 12e regiments there were, established by the great council. There was one among them, a doctor who managed to survive.",
+      "type": "encounter",
+      "terrain": "city",
+      "x": 3307,
+      "y": 1571,
+      "connectsTo": [
+        "bazaar",
+        "northern_passage"
+      ],
+      "enemies": [
+        "plague_doctor",
+        "plague_doctor",
+        "corpse"
+      ],
+      "enemyMana": 160,
+      "reward": {
+        "mana": 20
+      }
+    },
+    {
+      "name": "northern_passage",
+      "title": "Northern passage",
+      "description": "Iti s not actualy known from where the Eather came from. It struck quickly and without any restraint. Killing or corrupting anything in its path. Its origins may lay in something not from this world. Many scolars agree, that while studying the old texts and engravings they saw something…something that came once before.",
+      "type": "encounter",
+      "terrain": "city",
+      "x": 3229,
+      "y": 1276,
+      "connectsTo": [
+        "mountain_pass"
+      ],
+      "enemies": [
+        "construct",
+        "grave_digger",
+        "corpse"
+      ],
+      "enemyMana": 140
+    },
+    {
+      "name": "mountain_pass",
+      "title": "Mountain pass",
+      "description": "This is the last stretch of road, leading to castle Sibros. Not many people knew about its existence. Its purpose was, that in case of a disaster the monarch could flee to the former Blackstone keep. It is not known if he made it, although I do quite doubt Sibros would share his castle with him.",
+      "type": "encounter",
+      "terrain": "hills",
+      "x": 3521,
+      "y": 1163,
+      "connectsTo": [
+        "fort_sibros"
+      ],
+      "enemies": [
+        "wendigo",
+        "wendigo"
+      ],
+      "enemyMana": 160
+    },
+    {
+      "name": "fort_sibros",
+      "title": "Fort sibros",
+      "description": "A tall, black tower stands in front of you. Lined with copper wiring, repurposed to do the unholy…to raise the dead. On top of this horred spire stand three rods, there purpose to channel the power of Thunder into the rotting bodies of the deceased. There are no windows or doors, neither crests nor flags, there is only a mouth that heads into the bowls of this great monster.",
+      "type": "end",
+      "terrain": "fort",
+      "x": 3657,
+      "y": 844,
+      "connectsTo": [
+      ],
+      "enemies": [
+        "construct",
+        "doctor_sibros",
+        "plague_doctor"
+      ],
+      "enemyMana": 300
+    }
+  ]
+}

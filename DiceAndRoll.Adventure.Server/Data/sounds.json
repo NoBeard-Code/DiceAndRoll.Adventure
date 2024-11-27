@@ -1,0 +1,102 @@
+{
+    "interlude": "assets/sound/loops/looperman-l-1483711-0130311-hilltop-full.wav",
+    "theme": "assets/sound/loops/looperman-l-0626891-0132037-tuesday.wav",
+    "victory": "assets/sound/loops/looperman-l-0173301-0131687-eepic.wav",
+    "defeat": "assets/sound/loops/looperman-l-0202721-0070581-anubis-anubis.wav",
+    "end": "assets/sound/loops/looperman-l-0173301-0131687-eepic.wav",
+    "terrain": {
+        "beach": "assets/sound/loops/looperman-l-0202721-0074107-anubis-titans-on-the-battlefield.wav",
+        "hills": "assets/sound/loops/looperman-l-0202721-0073828-anubis-face-2-face.wav",
+        "forest": "assets/sound/loops/looperman-l-0202721-0112505-anubis-black-forest.wav",
+        "swamp": "assets/sound/loops/looperman-l-0202721-0107480-anubis-heavy-drums-02.wav",
+        "ruins": "assets/sound/loops/looperman-l-0202721-0107482-anubis-heavy-drums-04-groove.wav",
+        "city": "assets/sound/loops/looperman-l-0202721-0107483-anubis-heavy-drums-05-groove.wav",
+        "fort": "assets/sound/loops/looperman-l-0202721-0107483-anubis-heavy-drums-05-groove.wav"
+    },
+    "effects": {
+        "click": "assets/sound/effects/mechanical-clonk-1.mp3",
+        "closed": "assets/sound/effects/175662__simpsi__cant-open.wav",
+        "gong": "assets/sound/effects/Metal_Gong-Dianakc-109711828.mp3",
+        "page": "assets/sound/effects/page-flip-01a.mp3",
+        "card": "assets/sound/effects/434472__dersuperanton__taking-card.wav",
+        "battle": "assets/sound/effects/347981__madmanmusic__battle-preparations.wav",
+        "mana": "assets/sound/effects/specials/218561__phr4kture__last-scar-healed.wav",
+        "horn": "assets/sound/effects/217343__jordivburgel__warhorn-sound.wav"
+    },
+    "weapons": {
+        "gunslinger": "assets/sound/effects/weapons/213925__diboz__pistol-riccochet-s.wav",
+        "automaton": "assets/sound/effects/weapons/103628__benboncan__large-anvil-steel-hammer.wav",
+        "alchemist": "assets/sound/effects/weapons/155235__zangrutz__bomb-small.wav",
+        "musketeer": "assets/sound/effects/weapons/128978__aaronsiler__aaronsiler-musket-2.wav",
+        "illusionist": "assets/sound/effects/weapons/434472__dersuperanton__taking-card.wav",
+        "assasin": "assets/sound/effects/weapons/sword-clang5.wav",
+
+        "claws": "assets/sound/effects/weapons/435238__aris621__nasty-knife-stab.wav",
+        "clutches": "assets/sound/effects/weapons/435238__aris621__nasty-knife-stab.wav",
+        "cutlass": "assets/sound/effects/weapons/sword-clang.mp3",
+        "arquebus": "assets/sound/effects/weapons/128978__aaronsiler__aaronsiler-musket-2.wav",
+        "strings": "assets/sound/effects/weapons/336859__borque__zoiing-display-wires.wav",
+        "sceptre": "assets/sound/effects/weapons/Swords_Collide.mp3",
+        "poison": "assets/sound/effects/weapons/270409__littlerobotsoundfactory__spell-00.wav",
+        "spores": "assets/sound/effects/specials/270409__littlerobotsoundfactory__spell-00.wav",
+        "bite": "assets/sound/effects/weapons/246184__andreangelo__bite-growl-effect.wav",
+        "branch": "assets/sound/effects/weapons/278881__theshaggyfreak__shaking-branch.wav",
+        "pickaxe": "assets/sound/effects/weapons/175180__yottasounds__clank-002.wav",
+        "forge_hammer": "assets/sound/effects/weapons/103628__benboncan__large-anvil-steel-hammer.wav",
+        "lightning": "assets/sound/effects/specials/399656__bajko__sfx-thunder-blast.wav"
+    },
+    "specials": {
+        "ricochet": "assets/sound/effects/specials/315858__benjaminharveydesign__gunshot-ricochet.wav",
+        "bullseye": "assets/sound/effects/specials/351777__kennysvoice__sniper-rifle-m24-sfx-edit.wav",
+        "disarm": "assets/sound/effects/specials/disarm-with-pistol.wav",
+        "playing_dirty": "assets/sound/effects/specials/434473__dersuperanton__sand-rattle.wav",
+
+        "break_defense": "assets/sound/effects/specials/423010__ogsoundfx__monster-bite-on-armor.wav",
+        "burning_flames": "assets/sound/effects/specials/338685__natemarler__flame-thrower-varying-power.wav",
+        "brass_shield": "assets/sound/effects/specials/352187__inspectorj__snapping-wooden-fence-i.wav",
+        "shake_ground": "assets/sound/effects/specials/399656__bajko__sfx-thunder-blast.wav",
+
+        "remedy": "assets/sound/effects/specials/218561__phr4kture__last-scar-healed.wav",
+        "poisonous_gas": "assets/sound/effects/specials/202629__alexmaxlle__gas.wav",
+        "catalitic_bomb": "assets/sound/effects/specials/129281__sanitysprime__grende-with-falling-earth.wav",
+        "throw_acid": "assets/sound/effects/specials/270409__littlerobotsoundfactory__spell-00.wav",
+
+        "medikit": "assets/sound/effects/specials/218561__phr4kture__last-scar-healed.wav",
+        "precision_shot": "assets/sound/effects/specials/393651__eflexthesounddesigner__sniper-rifle-shot-gun-shot.wav",
+        "bayonet_charge": "assets/sound/effects/specials/431757__schoggimousse__musket-massacre.wav",
+        "battle_cry": "assets/sound/effects/specials/165492__chripei__victory-cry-reverb-1.wav",
+
+        "ace": "assets/sound/effects/specials/121894__stephensaldanha__magical-effect.wav",
+        "blind": "assets/sound/effects/specials/360830__tec-studios__fantasy-sfx-003.wav",
+        "performance": "assets/sound/effects/specials/12896__harri__circus-short.wav",
+        "magic_trick": "assets/sound/effects/specials/179055__robinhood76__04148-a-circus-jump-with-clarinet.wav",
+
+        "disappear": "assets/sound/effects/specials/193810__geoneo0__four-voices-whispering-3.wav",
+        "backstab": "assets/sound/effects/specials/435238__aris621__nasty-knife-stab.wav",
+        "reaping_cut": "assets/sound/effects/specials/175953__freefire66__dagger-drawn2.wav",
+        "throwing_knives": "assets/sound/effects/specials/SwooshCombo1.wav",
+
+        "enchanting_song": "assets/sound/effects/specials/345504__cormi__mermaids.wav",
+        "tidal_wave": "assets/sound/effects/specials/412308__straget__big-waves-hit-land.wav",
+        "piercing_laugh": "assets/sound/effects/specials/126113__klankbeeld__laugh.wav",
+        "puppet": "assets/sound/effects/specials/193810__geoneo0__four-voices-whispering-3.wav",
+        "crow": "assets/sound/effects/specials/418262__inspectorj__crow-call-single-a.wav",
+        "curse": "assets/sound/effects/specials/348142__nikomyth__witch-s-laugh.wav",
+        "fear": "assets/sound/effects/specials/173945__johnsonbrandediting__human-male-scream-small-crowd-panic-fear.wav",
+        "entangle": "assets/sound/effects/specials/278881__theshaggyfreak__shaking-branch-1.wav",
+        "vampire_bite": "assets/sound/effects/specials/339501__robinhood76__06451-vampire-slow-hit-scream.wav",
+        "blood": "assets/sound/effects/specials/433645__dersuperanton__drinking-and-swallow.wav",
+        "electric_charge": "assets/sound/effects/specials/383654__deleted-user-7146007__electricity.wav",
+        "eather": "assets/sound/effects/specials/270409__littlerobotsoundfactory__spell-00.wav"
+    },
+    "ambient": {
+        "arrival": "assets/sound/ambient/331435__codeine__storm-at-sea.wav",
+        "beach": "assets/sound/ambient/ocean-wave-1.mp3",
+        "swamp": "assets/sound/ambient/lake-waves-01.mp3",
+        "hills": "assets/sound/ambient/405561__inspectorj__wind-realistic-a.wav",
+        "forest": "assets/sound/ambient/385279__bajko__sfx-amb-forest-spring-afternoon-02.wav",
+        "ruins": "assets/sound/ambient/89448__bkamuse__dangerous-mine-shaft.wav",
+        "city": "assets/sound/ambient/75076__nupton__abandoned.wav",
+        "fort": "assets/sound/ambient/75076__nupton__abandoned.wav"
+    }
+}

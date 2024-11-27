@@ -1,0 +1,391 @@
+{
+    "ricochet": {
+        "name": "ricochet",
+        "title": "Ricochet",
+        "description": "Shots an enemy at range and deals +8 Att damage to random enemy.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "twoTargets",
+        "effectType": "damage",
+        "modifier": 8,
+        "manaCost": 40
+    },
+    "bullseye": {
+        "name": "bullseye",
+        "title": "Bullseye",
+        "description": "Concentrates on shooting precision by increasing attack modifier for +20 on 3 turns.",
+        "targetType": "self",
+        "executionType": "singleTarget",
+        "effectType": "attack",
+        "modifier": 20,
+        "duration": 3,
+        "manaCost": 40
+    },
+    "disarm": {
+        "name": "disarm",
+        "title": "Disarm",
+        "description": "Shoots the enemy's weapon, thus decreasing its attack modifier by -40 on 3 turns.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "attack",
+        "modifier": -40,
+        "duration": 1,
+        "manaCost": 35
+    },
+    "playing_dirty": {
+        "name": "playing_dirty",
+        "title": "Playing dirty",
+        "description": "Improvise when shoot, that's the style of playing dirty. Stuns enemy for 1 turn.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "stun",
+        "duration": 1,
+        "manaCost": 35
+    },
+    "remedy": {
+        "name": "remedy",
+        "title": "Remedy",
+        "description": "Makes a herbal remedy, which heals wounded party member with 20 HP.",
+        "targetType": "anyFriend",
+        "executionType": "singleTarget",
+        "effectType": "heal",
+        "modifier": 18,
+        "manaCost": 35
+    },
+    "poisonous_gas": {
+        "name": "poisonous_gas",
+        "title": "Poisonous gas",
+        "description": "Throws a poison gas to close target which lingers for 3 turns dealing 12 damage.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "lingering",
+        "lingeringType": "poison",
+        "duration": 3,
+        "modifier": 12,
+        "manaCost": 35
+    },
+    "throw_acid": {
+        "name": "throw_acid",
+        "title": "Throw acid",
+        "description": "Preparation of the acid weakens the enemy for 3 turns by decreasing defense by -10.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "defense",
+        "modifier": -10,
+        "duration": 2,
+        "manaCost": 35
+    },
+    "catalitic_bomb": {
+        "name": "catalitic_bomb",
+        "title": "Catalitic bomb",
+        "description": "Throws powerful bomb that deals damage of 16 to all targets in closest rank.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "allTargetsInRank",
+        "effectType": "damage",
+        "modifier": 16,
+        "manaCost": 60
+    },
+    "break_defense": {
+        "name": "break_defense",
+        "title": "Break defense",
+        "description": "Armor of enemy is weakened, thus decreasing its defense with -10 by 2 turns.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "defense",
+        "modifier": -10,
+        "duration": 1,
+        "manaCost": 35
+    },
+    "burning_flames": {
+        "name": "burning_flames",
+        "title": "Burning flames",
+        "description": "Mechanical combustion burns close target with flames inflicting 12 damage in 3 turns.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "lingering",
+        "lingeringType": "fire",
+        "duration": 3,
+        "modifier": 12,
+        "manaCost": 40
+    },
+    "brass_shield": {
+        "name": "brass_shield",
+        "title": "Brass shield",
+        "description": "Made by engineering marvel, his poweful shield pertains defense +10 for 3 turns.",
+        "targetType": "self",
+        "executionType": "singleTarget",
+        "effectType": "defense",
+        "modifier": 3,
+        "duration": 2,
+        "manaCost": 40
+    },
+    "shake_ground": {
+        "name": "shake_ground",
+        "title": "Shake ground",
+        "description": "By using all of his might, powerful stomp stuns all enemies for 1 turn.",
+        "targetType": "anyEnemy",
+        "executionType": "allTargetsInRank",
+        "effectType": "stun",
+        "duration": 1,
+        "manaCost": 70
+    },
+    "medikit": {
+        "name": "medikit",
+        "title": "Medikit",
+        "description": "Army medikit bag contains bandages that heal party member for +20 HP.",
+        "targetType": "anyFriend",
+        "executionType": "singleTarget",
+        "effectType": "heal",
+        "modifier": 20,
+        "manaCost": 40
+    },
+    "precision_shot": {
+        "name": "precision_shot",
+        "title": "Precision shot",
+        "description": "By high discipline, sharpshooter uses concentration to deal 25 damage to enemy.",
+        "targetType": "anyEnemy",
+        "executionType": "singleTarget",
+        "effectType": "damage",
+        "modifier": 25,
+        "manaCost": 40
+    },
+    "bayonet_charge": {
+        "name": "bayonet_charge",
+        "title": "Bayonet change",
+        "description": "Using a bayonet, attack causes bleeding of close target for 3 turns with 12 damage.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "lingering",
+        "lingeringType": "bleeding",
+        "duration": 3,
+        "modifier": 12,
+        "manaCost": 35
+    },
+    "battle_cry": {
+        "name": "battle_cry",
+        "title": "Battle cry",
+        "description": "Encouraging his comrades, all party members increase their attack by +10 for 2 turns.",
+        "targetType": "anyFriend",
+        "executionType": "allTargets",
+        "effectType": "attack",
+        "modifier": 7,
+        "duration": 1,
+        "manaCost": 50
+    },
+    "ace": {
+        "name": "ace",
+        "title": "Ace",
+        "description": "Every good magician has an extra card in her sleeve, and damages the opponent hard with 20.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "damage",
+        "modifier": 8,
+        "manaCost": 20
+    },
+    "blind": {
+        "name": "blind",
+        "title": "Blind",
+        "description": "Using her wits, a caster spells an enemy with blindness which lower its attack by -40 for 2 turns.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "attack",
+        "modifier": -40,
+        "duration": 1,
+        "manaCost": 30
+    },
+    "performance": {
+        "name": "performance",
+        "title": "Performance",
+        "description": "Distraction is best when an enemy is fool, thus lowering its defense by -10 for 2 turns.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "defense",
+        "modifier": -10,
+        "duration": 1,
+        "manaCost": 35
+    },
+    "magic_trick": {
+        "name": "magic_trick",
+        "title": "Magic trick",
+        "description": "A hare in her hat, a magic trick for delusioned opponent makes it bedazzled for 3 turns.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "stun",
+        "duration": 3,
+        "manaCost": 70
+    },
+    "disappear": {
+        "name": "disappear",
+        "title": "Disappear",
+        "description": "Using her stealth, she dissapears increasing her defense for +12 by 2 rounds.",
+        "targetType": "self",
+        "executionType": "singleTarget",
+        "effectType": "defense",
+        "modifier": 10,
+        "duration": 2,
+        "manaCost": 40
+    },
+    "backstab": {
+        "name": "backstab",
+        "title": "Backstab",
+        "description": "Cunning ability makes it possible to sneak through and deal 22 damage to any of the foes.",
+        "targetType": "anyEnemy",
+        "executionType": "singleTarget",
+        "effectType": "damage",
+        "modifier": 20,
+        "manaCost": 40
+    },
+    "reaping_cut": {
+        "name": "reaping_cut",
+        "title": "Reaping cut",
+        "description": "Deals deep injury to the opponent in close combat that bleeds for 3 turns with 12 damage.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "lingering",
+        "lingeringType": "bleeding",
+        "duration": 3,
+        "modifier": 12,
+        "manaCost": 35
+    },
+    "throwing_knives": {
+        "name": "throwing_knives",
+        "title": "Throwing knives",
+        "description": "Deadly knives strike two targets at once dealing 20 damage to the opponents.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "twoTargets",
+        "effectType": "damage",
+        "modifier": 16,
+        "manaCost": 60
+    },
+
+
+
+
+
+
+    "enchanting_song": {
+        "name": "enchanting_song",
+        "title": "Enchanting song",
+        "description": "The song of mermaids enchants sailors and men and they are stunned for 1 turn.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "stun",
+        "duration": 1,
+        "manaCost": 35
+    },
+    "tidal_wave": {
+        "name": "tidal_wave",
+        "title": "Tidal wave",
+        "description": "A cursed seabound creature calls the tidal wave which deals 10 damage to all in rank.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "allTargetsInRank",
+        "effectType": "damage",
+        "modifier": 8,
+        "manaCost": 40
+    },
+    "piercing_laugh": {
+        "name": "piercing_laugh",
+        "title": "Piercing laugh",
+        "description": "Makes annoying sound awful to two beligerents which causes +8 Att damage.",
+        "targetType": "anyEnemy",
+        "executionType": "twoTargets",
+        "effectType": "damage",
+        "modifier": 7,
+        "manaCost": 30
+    },
+    "puppet": {
+        "name": "puppet",
+        "title": "Puppet",
+        "description": "Turns an enemy unit into a puppet, therefore he is stunned for 2 turns.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "stun",
+        "duration": 1,
+        "manaCost": 35
+    },
+    "crow": {
+        "name": "crow",
+        "title": "Crow",
+        "description": "Minion of the dark, a crow flies and stings fearfully with 35 damage to enemy.",
+        "targetType": "anyEnemy",
+        "executionType": "singleTarget",
+        "effectType": "damage",
+        "modifier": 10,
+        "manaCost": 45
+    },
+    "curse": {
+        "name": "curse",
+        "title": "Curse",
+        "description": "Casts a powerful curse, thus decreasing attack modifier for -40 for 3 turns.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "attack",
+        "modifier": -40,
+        "duration": 2,
+        "manaCost": 35
+    },
+    "fear": {
+        "name": "fear",
+        "title": "Fear",
+        "description": "Wendigo strikes fear to your party, making them full of panic defensless for 2 turns.",
+        "targetType": "anyEnemy",
+        "executionType": "allTargets",
+        "effectType": "defense",
+        "modifier": -12,
+        "duration": 2,
+        "manaCost": 35
+    },
+    "entangle": {
+        "name": "entangle",
+        "title": "Entangle",
+        "description": "Wood creature has ability to entangle the enemy which cannot move for 2 turns.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "stun",
+        "duration": 2,
+        "manaCost": 25
+    },
+    "vampire_bite": {
+        "name": "vampire_bite",
+        "title": "Vampire bite",
+        "description": "Vampires causes attack of bleeding of close target for 3 turns with 12 damage.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "singleTarget",
+        "effectType": "lingering",
+        "lingeringType": "bleeding",
+        "duration": 3,
+        "modifier": 12,
+        "manaCost": 20
+    },
+    "blood": {
+        "name": "blood",
+        "title": "Blood",
+        "description": "Regenerates health of vampire by drinking human blood for 30 HP.",
+        "targetType": "self",
+        "executionType": "singleTarget",
+        "effectType": "heal",
+        "modifier": 40,
+        "manaCost": 0
+    },
+    "electric_charge": {
+        "name": "electric_charge",
+        "title": "Electric charge",
+        "description": "By using mighty powers, electric charges stun all enemies for 1 turn.",
+        "targetType": "anyEnemyInNearestRank",
+        "executionType": "allTargetsInRank",
+        "effectType": "stun",
+        "duration": 1,
+        "manaCost": 20
+    },
+    "eather": {
+        "name": "eather",
+        "title": "Eather",
+        "description": "Throws deadly Eather wind which lingers for 3 turns dealing 15 damage.",
+        "targetType": "anyEnemy",
+        "executionType": "allTargets",
+        "effectType": "lingering",
+        "lingeringType": "poison",
+        "duration": 3,
+        "modifier": 15,
+        "manaCost": 20
+    }
+}

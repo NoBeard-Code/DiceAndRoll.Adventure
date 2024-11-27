@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35506.116 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceAndRoll.Adventure.Server", "DiceAndRoll.Adventure.Server\DiceAndRoll.Adventure.Server.csproj", "{6F5EA1E0-83B3-45DE-BAD6-6F5A3B99441C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceAndRoll.Adventure.Shared", "DiceAndRoll.Adventure.Shared\DiceAndRoll.Adventure.Shared.csproj", "{7E7A15C4-BE3E-48C1-A432-9EE511FCEBA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceAndRoll.Adventure.ConsoleApp", "DiceAndRoll.Adventure.ConsoleApp\DiceAndRoll.Adventure.ConsoleApp.csproj", "{23752775-DF38-4F57-A42C-59EEFDBCE190}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F5EA1E0-83B3-45DE-BAD6-6F5A3B99441C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F5EA1E0-83B3-45DE-BAD6-6F5A3B99441C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F5EA1E0-83B3-45DE-BAD6-6F5A3B99441C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F5EA1E0-83B3-45DE-BAD6-6F5A3B99441C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E7A15C4-BE3E-48C1-A432-9EE511FCEBA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E7A15C4-BE3E-48C1-A432-9EE511FCEBA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E7A15C4-BE3E-48C1-A432-9EE511FCEBA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E7A15C4-BE3E-48C1-A432-9EE511FCEBA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23752775-DF38-4F57-A42C-59EEFDBCE190}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23752775-DF38-4F57-A42C-59EEFDBCE190}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23752775-DF38-4F57-A42C-59EEFDBCE190}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23752775-DF38-4F57-A42C-59EEFDBCE190}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
