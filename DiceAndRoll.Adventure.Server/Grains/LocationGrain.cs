@@ -26,7 +26,7 @@ public sealed class LocationGrain(
     }
 
     //Clients use this to unsubscribe and no longer receive messages.
-    public Task UnSubscribe(ILocationObserver observer)
+    public Task Unsubscribe(ILocationObserver observer)
     {
         _observerManager.Unsubscribe(observer);
         return Task.CompletedTask;
