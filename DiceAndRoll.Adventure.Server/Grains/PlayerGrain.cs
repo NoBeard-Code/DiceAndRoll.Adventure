@@ -59,10 +59,10 @@ internal sealed class PlayerGrain(
         return verb switch
         {
             "look" =>
-                await _currentLocation.Describe(),
+                await _currentLocation.Describe(_name),
 
             "go" => words.Length == 1
-                ? "Go where?"
+                ? "[fuchsia]Go where?[/]"
                 : await Go(words[1]),
 
             //"north" or "south" or "east" or "west" => await Go(verb),
@@ -81,7 +81,7 @@ internal sealed class PlayerGrain(
 
             "end" => "",
 
-            _ => "I don't understand"
+            _ => "[fuchsia]I don't understand[/]"
         };
     }
 
@@ -110,20 +110,22 @@ internal sealed class PlayerGrain(
 
         if (_currentLocation is not null && destination is not null)
         {
+            description.AppendLine("Allright, let's go there!");
+
             await _currentLocation.Exit(_name);
             await destination.Enter(_name);
 
             _currentLocation = destination;
 
-            var desc = await destination.Describe();
+            var desc = await destination.Describe(_name);
             if (desc != null)
             {
-                description.Append(desc);
+                description.AppendLine(desc);
             }
         }
         else
         {
-            description.Append("You cannot go in that direction.");
+            description.AppendLine("[fuchsia]You cannot go in that direction.[/]");
         }
 
         return description.ToString();

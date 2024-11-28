@@ -88,8 +88,11 @@ AnsiConsole.Status()
         Thread.Sleep(1000);
     });
 
-var initialText = $", drenched and exhausted, washes up on the shore of an unfamiliar land. The sand beneath you is coarse, and the air carries a salty tang. As you regain your senses, you notice the landscape around: \n";
+AnsiConsole.MarkupLine("Let's begin with our story...");
+
+var initialText = $", drenched and exhausted, washes up on the shore of an unfamiliar land. The sand beneath you is coarse, and the air carries a salty tang. As you regain your senses, you notice the landscape around:";
 AnsiConsole.MarkupLine($"[yellow]{name}[/][purple]{initialText}[/]");
+AnsiConsole.WriteLine();
 
 await AnsiConsole.Status()
     .StartAsync("Entering the map...", async ctx =>
@@ -106,7 +109,7 @@ try
         var command = Console.ReadLine()!;
 
         result = await player.Play(command);
-        AnsiConsole.MarkupLine($"[purple]{result}[/]");
+        AnsiConsole.MarkupLine($"{result}");
     }
 }
 finally

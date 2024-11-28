@@ -10,7 +10,7 @@ public interface ILocationGrain : IGrainWithStringKey
 
     Task Exit(string playerName);
 
-    Task<string> Describe();
+    Task<string> Describe(string playerName);
 
     Task<ILocationGrain?> ExitTo(string destination);
 }

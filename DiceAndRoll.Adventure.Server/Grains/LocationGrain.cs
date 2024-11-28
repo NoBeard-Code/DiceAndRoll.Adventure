@@ -33,6 +33,7 @@ public sealed class LocationGrain(
 
     public Task Enter(string playerName)
     {
+        _players.RemoveAll(x => x == playerName);
         _players.Add(playerName);
         return Task.CompletedTask;
     }
@@ -43,15 +44,27 @@ public sealed class LocationGrain(
         return Task.CompletedTask;
     }
 
-    public Task<string> Describe()
+    public Task<string> Describe(string playerName)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(state.State.Description);
+        sb.AppendLine($"[purple]{state.State.Description}[/]");
+        sb.AppendLine();
 
-        sb.AppendLine("You can go in the following directions:");
+        var others = _players.Where(x => x != playerName); 
+        if (others.Any())
+        {
+            sb.AppendLine("[maroon]Beware! These guys are in the room with you:[/]");
+            foreach (var other in others)
+            {
+                sb.Append("  ").AppendLine($"[olive]{other}[/]");
+            }
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("[grey]You can go in the following directions:[/]");
         foreach (var location in _connections.Keys)
         {
-            sb.Append("  ").AppendLine(location);
+            sb.Append("  ").AppendLine($"[silver]{location}[/]");
         }
 
         return Task.FromResult(sb.ToString());
