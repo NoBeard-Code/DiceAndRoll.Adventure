@@ -1,13 +1,14 @@
 ﻿using DiceAndRoll.Adventure.Server.Services;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
 internal sealed class PlayerGrain(
     ICharacterService characterService,
-    [PersistentState("player", "game")] IPersistentState<CharacterInfo> state) : Grain, IPlayerGrain
+    [PersistentState("player", "game")] IPersistentState<CharacterInfo> state) : Grain, IPlayerGrain, ILocationObserver
 {
     private const string FIRST_LOCATION = "lighthouse";
 
@@ -19,19 +20,17 @@ internal sealed class PlayerGrain(
         return await characterService.GetCharactersAsync();
     }
 
-    public Task JoinGame(string name, CharacterInfo character)
+    public async Task JoinGame(string name, CharacterInfo character)
     {
         _name = name;
         var firstLocation = GrainFactory.GetGrain<ILocationGrain>(FIRST_LOCATION);
-        _currentLocation = firstLocation;
-        firstLocation.Enter(name);
 
-        state.ClearStateAsync();
+        await state.ClearStateAsync();
 
         state.State = character;
-        state.WriteStateAsync();
+        await state.WriteStateAsync();
 
-        return Task.CompletedTask;
+        await SetCurrentLocation(firstLocation);
     }
 
     public async Task<string> Look()
@@ -61,9 +60,8 @@ internal sealed class PlayerGrain(
             description.AppendLine("Allright, let's go there!");
 
             await _currentLocation.Exit(_name);
-            await destination.Enter(_name);
 
-            _currentLocation = destination;
+            await SetCurrentLocation(destination);
 
             var desc = await destination.Describe(_name);
             if (desc != null)
@@ -77,6 +75,19 @@ internal sealed class PlayerGrain(
         }
 
         return description.ToString();
+    }
+
+    private async Task SetCurrentLocation(ILocationGrain location)
+    {
+        if (_currentLocation != null)
+        {
+            await _currentLocation.Unsubscribe(this.AsReference<ILocationObserver>());
+        }
+
+        await location.Enter(_name);
+        _currentLocation = location;
+
+        await _currentLocation.Subscribe(this.AsReference<ILocationObserver>());
     }
 
     public Task<string> GoBack()
@@ -116,5 +127,10 @@ internal sealed class PlayerGrain(
         }
 
         return result;
+    }
+
+    public Task PlayerEnteredLocation(string playerName)
+    {
+        throw new NotImplementedException();
     }
 }

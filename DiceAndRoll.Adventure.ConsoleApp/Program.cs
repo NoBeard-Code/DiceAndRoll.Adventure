@@ -1,4 +1,5 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
+using DiceAndRoll.Adventure.Shared.Observers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -89,6 +90,9 @@ AnsiConsole.Status()
         Thread.Sleep(1000);
     });
 
+var observer = new LocationObserver();
+var reference = client.CreateObjectReference<ILocationObserver>(observer);
+
 AnsiConsole.MarkupLine("Let's begin with our story...");
 
 var initialText = $", drenched and exhausted, washes up on the shore of an unfamiliar land. The sand beneath you is coarse, and the air carries a salty tang. As you regain your senses, you notice the landscape around:";
@@ -172,7 +176,6 @@ async Task<string> GoPrompt()
     }
 }
 
-
 string RemoveUnnecessaryWords(string s)
 {
     var words = new[] { " on ", " the ", " a ", " to ", " in " };
@@ -184,4 +187,13 @@ string RemoveUnnecessaryWords(string s)
     }
 
     return builder.ToString();
+}
+
+public class LocationObserver : ILocationObserver
+{
+    public Task PlayerEnteredLocation(string playerName)
+    {
+        AnsiConsole.MarkupLine($"[maroon]Behold! Player {playerName} entered the location![/]");
+        return Task.CompletedTask;
+    }
 }
