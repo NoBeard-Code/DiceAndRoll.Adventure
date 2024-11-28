@@ -1,39 +1,19 @@
-﻿using DiceAndRoll.Adventure.Server.Services;
-using DiceAndRoll.Adventure.Shared.Grains;
-using DiceAndRoll.Adventure.UnitTests.Fakes;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Orleans.TestingHost;
+﻿using DiceAndRoll.Adventure.Shared.Grains;
+using DiceAndRoll.Adventure.UnitTests.Fixtures;
 
 namespace DiceAndRoll.Adventure.UnitTests;
 
-public class ClientTests
+public class ClientTests(ClusterFixture cluster) : IClassFixture<ClusterFixture>
 {
-    private class TestSiloConfigurations : ISiloConfigurator
-    {
-        public void Configure(ISiloBuilder siloBuilder)
-        {
-            siloBuilder.AddMemoryGrainStorage("game");
-            siloBuilder.ConfigureServices(static services =>
-            {
-                services.AddSingleton<ICharacterService, FakeCharacterService>();
-            });
-        }
-    }
-
     [Fact]
-    public async Task TestSingleGrain()
+    public async Task TestSingleClientConnection()
     {
-        var cluster = new TestClusterBuilder()
-            .AddSiloBuilderConfigurator<TestSiloConfigurations>()
-            .Build();
+        var client = cluster.GetClient();
 
-        cluster.Deploy();
-
-        var grain = cluster.GrainFactory.GetGrain<IPlayerGrain>(Guid.NewGuid());
+        var grain = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
         var result = await grain.Play("nothing");
 
-        cluster.StopAllSilos();
+        Assert.NotNull(result);
     }
 
     [Theory]
@@ -42,45 +22,13 @@ public class ClientTests
     [InlineData(1000)]
     [InlineData(10000)]
     [InlineData(100000)]
-    [InlineData(1000000)]
-    public async Task TestServerLoad(int numberOfGrains)
+    public async Task TestClientConnections(int numberOfClients)
     {
-        var cluster = new TestClusterBuilder()
-            .AddSiloBuilderConfigurator<TestSiloConfigurations>()
-            .Build();
-
-        cluster.Deploy();
-
-        for (int i = 0; i < numberOfGrains; i++)
-        {
-            var grain = cluster.GrainFactory.GetGrain<IPlayerGrain>(Guid.NewGuid());
-            var result = await grain.Play("nothing");
-        }
-
-        cluster.StopAllSilos();
-    }
-
-    [Theory]
-    [InlineData(10)]
-    public async Task TestMultipleClientConnections(int numberOfClients)
-    {
-        var builder = new TestClusterBuilder();
-        var cluster = builder.Build();
-        cluster.Deploy();
-
         var clients = new List<IClusterClient>();
 
         for (int i = 0; i < numberOfClients; i++)
         {
-            var host = Host.CreateDefaultBuilder()
-                .UseOrleansClient(clientBuilder =>
-                {
-                    clientBuilder.UseLocalhostClustering();
-                })
-                .Build();
-
-            await host.StartAsync();
-            var client = host.Services.GetRequiredService<IClusterClient>();
+            var client = cluster.GetClient();
             clients.Add(client);
         }
 
@@ -90,12 +38,10 @@ public class ClientTests
             tasks.Add(Task.Run(async () =>
             {
                 var grain = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
-                await grain.GetCharacters();
+                var result = await grain.Play("nothing");
             }));
         }
 
         await Task.WhenAll(tasks);
-
-        cluster.StopAllSilos();
     }
 }

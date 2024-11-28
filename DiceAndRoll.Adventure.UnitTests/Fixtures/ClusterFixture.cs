@@ -20,6 +20,8 @@ public sealed class ClusterFixture : IDisposable
 
     public IGrainFactory GrainFactory => _cluster.GrainFactory;
 
+    public IClusterClient GetClient() => _cluster.Client;
+
     public void Dispose()
     {
         _cluster.StopAllSilos();
