@@ -1,5 +1,4 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
-using DiceAndRoll.Adventure.Shared.Observers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -89,9 +88,6 @@ AnsiConsole.Status()
         player.JoinGame(name, character!);
         Thread.Sleep(1000);
     });
-
-var observer = new LocationObserver();
-var reference = client.CreateObjectReference<ILocationObserver>(observer);
 
 AnsiConsole.MarkupLine("Let's begin with our story...");
 
@@ -189,11 +185,3 @@ string RemoveUnnecessaryWords(string s)
     return builder.ToString();
 }
 
-public class LocationObserver : ILocationObserver
-{
-    public Task PlayerEnteredLocation(string playerName)
-    {
-        AnsiConsole.MarkupLine($"[maroon]Behold! Player {playerName} entered the location![/]");
-        return Task.CompletedTask;
-    }
-}

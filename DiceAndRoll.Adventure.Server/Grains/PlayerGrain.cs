@@ -1,14 +1,13 @@
 ﻿using DiceAndRoll.Adventure.Server.Services;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
-using DiceAndRoll.Adventure.Shared.Observers;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
 internal sealed class PlayerGrain(
     ICharacterService characterService,
-    [PersistentState("player", "game")] IPersistentState<CharacterInfo> state) : Grain, IPlayerGrain, ILocationObserver
+    [PersistentState("player", "game")] IPersistentState<CharacterInfo> state) : Grain, IPlayerGrain
 {
     private const string FIRST_LOCATION = "lighthouse";
 
@@ -79,15 +78,8 @@ internal sealed class PlayerGrain(
 
     private async Task SetCurrentLocation(ILocationGrain location)
     {
-        if (_currentLocation != null)
-        {
-            await _currentLocation.Unsubscribe(this.AsReference<ILocationObserver>());
-        }
-
         await location.Enter(_name);
         _currentLocation = location;
-
-        await _currentLocation.Subscribe(this.AsReference<ILocationObserver>());
     }
 
     public Task<string> GoBack()
@@ -127,10 +119,5 @@ internal sealed class PlayerGrain(
         }
 
         return result;
-    }
-
-    public Task PlayerEnteredLocation(string playerName)
-    {
-        throw new NotImplementedException();
     }
 }

@@ -1,5 +1,4 @@
 ﻿using DiceAndRoll.Adventure.Shared.Models;
-using DiceAndRoll.Adventure.Shared.Observers;
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
@@ -18,7 +17,4 @@ public interface ILocationGrain : IGrainWithStringKey
     Task<ILocationGrain?> ExitTo(string destination);
 
     Task<Dictionary<string, ILocationGrain>> GetConnections();
-
-    Task Subscribe(ILocationObserver observer);
-    Task Unsubscribe(ILocationObserver observer);
 }
