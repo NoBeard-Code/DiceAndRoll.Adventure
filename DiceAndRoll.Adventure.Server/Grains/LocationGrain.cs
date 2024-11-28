@@ -1,36 +1,15 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
-using DiceAndRoll.Adventure.Shared.Observers;
-using Microsoft.Extensions.Logging;
-using Orleans.Utilities;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
 public sealed class LocationGrain(
-    [PersistentState("location", "game")] IPersistentState<LocationInfo> state, 
-    ILogger<LocationGrain> logger) 
+    [PersistentState("location", "game")] IPersistentState<LocationInfo> state) 
     : Grain, ILocationGrain
 {
-    private readonly ObserverManager<ILocationObserver> _observerManager 
-        = new(TimeSpan.FromSeconds(2), logger);
-
     private readonly Dictionary<string, ILocationGrain> _connections = [];
     private readonly List<string> _players = [];
-
-    // Clients call this to subscribe.
-    public Task Subscribe(ILocationObserver observer)
-    {
-        _observerManager.Subscribe(observer, observer);
-        return Task.CompletedTask;
-    }
-
-    //Clients use this to unsubscribe and no longer receive messages.
-    public Task Unsubscribe(ILocationObserver observer)
-    {
-        _observerManager.Unsubscribe(observer);
-        return Task.CompletedTask;
-    }
 
     public async Task Configure(LocationInfo info)
     {
@@ -59,8 +38,6 @@ public sealed class LocationGrain(
     {
         _players.RemoveAll(x => x == playerName);
         _players.Add(playerName);
-
-        _observerManager.Notify(x => x.PlayerEnteredLocation(playerName));
 
         return Task.CompletedTask;
     }
