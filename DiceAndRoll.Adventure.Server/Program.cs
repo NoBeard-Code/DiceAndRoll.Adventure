@@ -24,6 +24,7 @@ builder.UseOrleans(siloBuilder =>
 {
     siloBuilder.UseLocalhostClustering();
     siloBuilder.AddMemoryGrainStorage("game");
+    siloBuilder.UseDashboard();
 });
 
 builder.ConfigureServices(services => {

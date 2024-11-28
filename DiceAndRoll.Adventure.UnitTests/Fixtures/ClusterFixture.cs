@@ -1,7 +1,4 @@
-﻿using DiceAndRoll.Adventure.Server.Services;
-using DiceAndRoll.Adventure.UnitTests.Fakes;
-using Microsoft.Extensions.DependencyInjection;
-using Orleans.TestingHost;
+﻿using Orleans.TestingHost;
 
 namespace DiceAndRoll.Adventure.UnitTests.Fixtures;
 
@@ -12,7 +9,7 @@ public sealed class ClusterFixture : IDisposable
     public ClusterFixture()
     {
         _cluster = new TestClusterBuilder()
-            .AddSiloBuilderConfigurator<TestSiloConfigurations>()
+            .AddSiloBuilderConfigurator<TestSiloConfiguration>()
             .Build();
 
         _cluster.Deploy();
@@ -25,17 +22,5 @@ public sealed class ClusterFixture : IDisposable
     public void Dispose()
     {
         _cluster.StopAllSilos();
-    }
-}
-
-internal class TestSiloConfigurations : ISiloConfigurator
-{
-    public void Configure(ISiloBuilder siloBuilder)
-    {
-        siloBuilder.AddMemoryGrainStorage("game");
-        siloBuilder.ConfigureServices(static services =>
-        {
-            services.AddSingleton<ICharacterService, FakeCharacterService>();
-        });
     }
 }
