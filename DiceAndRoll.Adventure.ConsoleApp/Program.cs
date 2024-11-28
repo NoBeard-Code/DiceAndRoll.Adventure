@@ -88,4 +88,32 @@ AnsiConsole.Status()
         Thread.Sleep(1000);
     });
 
+var initialText = $", drenched and exhausted, washes up on the shore of an unfamiliar land. The sand beneath you is coarse, and the air carries a salty tang. As you regain your senses, you notice the landscape around: \n";
+AnsiConsole.MarkupLine($"[yellow]{name}[/][purple]{initialText}[/]");
+
+await AnsiConsole.Status()
+    .StartAsync("Entering the map...", async ctx =>
+    {
+        var result = await player.Play("look");
+        AnsiConsole.MarkupLine($"[purple]{result}[/]");
+    });
+
+var result = "Start";
+try
+{
+    while (result is not "")
+    {
+        var command = Console.ReadLine()!;
+
+        result = await player.Play(command);
+        AnsiConsole.WriteLine(result);
+    }
+}
+finally
+{
+    await player.Die();
+    AnsiConsole.MarkupLine("[red]Game over![/]");
+    await host.StopAsync();
+}
+
 Console.ReadLine();

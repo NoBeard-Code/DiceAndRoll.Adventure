@@ -1,5 +1,6 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
@@ -34,5 +35,32 @@ internal sealed class LocationGrain(
     {
         _players.Add(playerName);
         return Task.CompletedTask;
+    }
+
+    public Task Exit(string playerName)
+    {
+        _players.RemoveAll(x => x == playerName);
+        return Task.CompletedTask;
+    }
+
+    public Task<string> Describe()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine(state.State.Description);
+
+        sb.AppendLine("You can go in the following directions:");
+        foreach (var location in _connections.Keys)
+        {
+            sb.Append("  ").AppendLine(location);
+        }
+
+        return Task.FromResult(sb.ToString());
+    }
+
+    public Task<ILocationGrain?> ExitTo(string destination)
+    {
+        return Task.FromResult(
+            _connections.ContainsKey(destination) ? _connections[destination] : null
+        );
     }
 }
