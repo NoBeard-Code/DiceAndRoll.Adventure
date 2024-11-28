@@ -1,4 +1,5 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
+using DiceAndRoll.Adventure.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -108,7 +109,7 @@ try
     while (response is not "")
     {
         var command = AnsiConsole.Prompt(new TextPrompt<string>("What will you do?")
-            .AddChoices(["look", "go", "quit"])
+            .AddChoices(["look", "go", "kill", "quit"])
             .DefaultValue("look"));
 
         response = await Run(command);
@@ -139,11 +140,27 @@ async Task<string> Run(string command)
         "go" => 
             await GoPrompt(),
 
+        "kill" =>
+            await KillPrompt(),
+
         "quit" =>
             await player.Die(),
 
         _ => "[fuchsia]I don't understand[/]"
     }; 
+}
+
+string RemoveUnnecessaryWords(string s)
+{
+    var words = new[] { " on ", " the ", " a ", " to ", " in " };
+
+    StringBuilder builder = new(s);
+    foreach (var word in words)
+    {
+        builder.Replace(word, " ");
+    }
+
+    return builder.ToString();
 }
 
 async Task<string> GoPrompt()
@@ -172,16 +189,28 @@ async Task<string> GoPrompt()
     }
 }
 
-string RemoveUnnecessaryWords(string s)
+async Task<string> KillPrompt()
 {
-    var words = new[] { " on ", " the ", " a ", " to ", " in " };
+    var others = await player.FindOthers();
 
-    StringBuilder builder = new(s);
-    foreach (var word in words)
+    if (others is null || others.Count == 0)
     {
-        builder.Replace(word, " ");
+        return "[grey]There's no one there.[/]";
     }
+    else
+    {
+        others.Add(new PlayerInfo(Guid.Empty, "cancel"));
 
-    return builder.ToString();
+        var command = AnsiConsole.Prompt(new TextPrompt<string?>("[fuchsia]Kill whom?[/]")
+            .AddChoices(others.Select(x => x.Name))
+            .DefaultValue(others.First().Name));
+
+        if (command != "cancel")
+        {
+            var choice = others.First(x => x.Name == command);
+            return await player.Kill(choice);
+        }
+
+        return "It's good to see that there's still some humanity out there ...";
+    }
 }
-

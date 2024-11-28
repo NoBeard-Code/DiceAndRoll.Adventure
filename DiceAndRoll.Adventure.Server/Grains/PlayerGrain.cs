@@ -1,6 +1,7 @@
 ﻿using DiceAndRoll.Adventure.Server.Services;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using System.Security.Cryptography.Xml;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
@@ -11,8 +12,14 @@ internal sealed class PlayerGrain(
 {
     private const string FIRST_LOCATION = "lighthouse";
 
-    private string _name = string.Empty;
-    private ILocationGrain? _currentLocation; 
+    private PlayerInfo _self = null!;
+    private ILocationGrain? _currentLocation;
+
+    public override Task OnActivateAsync(CancellationToken cancellationToken)
+    {
+        _self = new PlayerInfo(this.GetPrimaryKey(), "nobody");
+        return base.OnActivateAsync(cancellationToken);
+    }
 
     public async Task<List<CharacterInfo>> GetCharacters()
     {
@@ -21,7 +28,8 @@ internal sealed class PlayerGrain(
 
     public async Task JoinGame(string name, CharacterInfo character)
     {
-        _name = name;
+        _self = _self with { Name = name };
+
         var firstLocation = GrainFactory.GetGrain<ILocationGrain>(FIRST_LOCATION);
 
         await state.ClearStateAsync();
@@ -40,7 +48,7 @@ internal sealed class PlayerGrain(
         } 
         else
         {
-            return await _currentLocation.Describe(_name);
+            return await _currentLocation.Describe(_self);
         }
     }
 
@@ -58,11 +66,11 @@ internal sealed class PlayerGrain(
         {
             description.AppendLine("Allright, let's go there!");
 
-            await _currentLocation.Exit(_name);
+            await _currentLocation.Exit(_self);
 
             await SetCurrentLocation(destination);
 
-            var desc = await destination.Describe(_name);
+            var desc = await destination.Describe(_self);
             if (desc != null)
             {
                 description.AppendLine(desc);
@@ -78,13 +86,20 @@ internal sealed class PlayerGrain(
 
     private async Task SetCurrentLocation(ILocationGrain location)
     {
-        await location.Enter(_name);
+        await location.Enter(_self);
         _currentLocation = location;
     }
 
     public Task<string> GoBack()
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<string> Kill(PlayerInfo targetPlayer)
+    {
+        var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key);
+        await target.Die();
+        return $"{targetPlayer.Name} is now dead.";
     }
 
     public async Task<string> Die()
@@ -94,7 +109,7 @@ internal sealed class PlayerGrain(
         // exit the room and the game
         if (_currentLocation != null)
         {
-            await _currentLocation.Exit(_name);
+            await _currentLocation.Exit(_self);
             _currentLocation = null;
         }
 
@@ -119,5 +134,14 @@ internal sealed class PlayerGrain(
         }
 
         return result;
+    }
+
+    public async Task<List<PlayerInfo>> FindOthers()
+    {
+        if (_currentLocation is null) return null;
+
+        var players = await _currentLocation.GetPlayers();
+
+        return players.Where(x => x.Key != _self.Key).ToList();
     }
 }

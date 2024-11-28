@@ -9,7 +9,7 @@ public sealed class LocationGrain(
     : Grain, ILocationGrain
 {
     private readonly Dictionary<string, ILocationGrain> _connections = [];
-    private readonly List<string> _players = [];
+    private readonly List<PlayerInfo> _players = [];
 
     public async Task Configure(LocationInfo info)
     {
@@ -34,33 +34,33 @@ public sealed class LocationGrain(
         return Task.FromResult((state.RecordExists) ? state.State : null);
     }
 
-    public Task Enter(string playerName)
+    public Task Enter(PlayerInfo player)
     {
-        _players.RemoveAll(x => x == playerName);
-        _players.Add(playerName);
+        _players.RemoveAll(x => x.Key == player.Key);
+        _players.Add(player);
 
         return Task.CompletedTask;
     }
 
-    public Task Exit(string playerName)
+    public Task Exit(PlayerInfo player)
     {
-        _players.RemoveAll(x => x == playerName);
+        _players.RemoveAll(x => x.Key == player.Key);
         return Task.CompletedTask;
     }
 
-    public async Task<string> Describe(string playerName)
+    public async Task<string> Describe(PlayerInfo toMe)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"[purple]{state.State.Description}[/]");
         sb.AppendLine();
 
-        var others = _players.Where(x => x != playerName); 
+        var others = _players.Where(x => x.Key != toMe.Key); 
         if (others.Any())
         {
             sb.AppendLine("[maroon]Beware! These guys are in the room with you:[/]");
             foreach (var other in others)
             {
-                sb.Append("  ").AppendLine($"[olive]{other}[/]");
+                sb.Append("  ").AppendLine($"[olive]{other.Name}[/]");
             }
             sb.AppendLine();
         }
@@ -88,5 +88,10 @@ public sealed class LocationGrain(
     public Task<Dictionary<string, ILocationGrain>> GetConnections()
     {
         return Task.FromResult(_connections);
+    }
+
+    public Task<List<PlayerInfo>> GetPlayers()
+    {
+        return Task.FromResult(_players); 
     }
 }

@@ -8,13 +8,15 @@ public interface ILocationGrain : IGrainWithStringKey
 
     Task Configure(LocationInfo data);
 
-    Task Enter(string playerName);
+    Task Enter(PlayerInfo player);
 
-    Task Exit(string playerName);
+    Task Exit(PlayerInfo player);
 
-    Task<string> Describe(string playerName);
+    Task<string> Describe(PlayerInfo toMe);
 
     Task<ILocationGrain?> ExitTo(string destination);
 
     Task<Dictionary<string, ILocationGrain>> GetConnections();
+
+    Task<List<PlayerInfo>> GetPlayers();
 }
