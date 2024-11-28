@@ -11,24 +11,27 @@ public sealed class LocationGrain(
     private readonly Dictionary<string, ILocationGrain> _connections = [];
     private readonly List<string> _players = [];
 
-    public Task Configure(LocationInfo info)
+    public async Task Configure(LocationInfo info)
     {
         if (state.RecordExists) 
-            return Task.CompletedTask; 
+            return; 
 
         state.State = info;
-        state.WriteStateAsync();
+        await state.WriteStateAsync();
 
         foreach (var connection in info.ConnectsTo)
         {
             var grain = GrainFactory.GetGrain<ILocationGrain>(connection);
             if (grain != null)
             {
-                _connections.Add(connection, grain);
+                _connections.Add(connection, grain);               
             }
         }
+    }
 
-        return Task.CompletedTask;
+    public Task<LocationInfo?> GetInfo()
+    {
+        return Task.FromResult((state.RecordExists) ? state.State : null);
     }
 
     public Task Enter(string playerName)
@@ -44,7 +47,7 @@ public sealed class LocationGrain(
         return Task.CompletedTask;
     }
 
-    public Task<string> Describe(string playerName)
+    public async Task<string> Describe(string playerName)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"[purple]{state.State.Description}[/]");
@@ -62,12 +65,16 @@ public sealed class LocationGrain(
         }
 
         sb.AppendLine("[grey]You can go in the following directions:[/]");
-        foreach (var location in _connections.Keys)
+        foreach (var location in _connections.Values)
         {
-            sb.Append("  ").AppendLine($"[silver]{location}[/]");
+            var info = await location.GetInfo();
+            if (info != null)
+            {
+                sb.Append("  ").AppendLine($"[silver]{info.Title}[/]");
+            }
         }
 
-        return Task.FromResult(sb.ToString());
+        return sb.ToString();
     }
 
     public Task<ILocationGrain?> ExitTo(string destination)
@@ -75,5 +82,10 @@ public sealed class LocationGrain(
         return Task.FromResult(
             _connections.ContainsKey(destination) ? _connections[destination] : null
         );
+    }
+
+    public Task<Dictionary<string, ILocationGrain>> GetConnections()
+    {
+        return Task.FromResult(_connections);
     }
 }

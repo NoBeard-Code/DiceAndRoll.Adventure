@@ -8,7 +8,13 @@ public interface IPlayerGrain : IGrainWithGuidKey
 
     Task JoinGame(string name, CharacterInfo character);
 
-    Task<string?> Play(string command);
+    Task<string> Look();
 
-    Task Die();
+    Task<string> GoTo(string location);
+
+    Task<string> GoBack();
+
+    Task<string> Die();
+
+    Task<Dictionary<string, string>> FindDirections();
 }

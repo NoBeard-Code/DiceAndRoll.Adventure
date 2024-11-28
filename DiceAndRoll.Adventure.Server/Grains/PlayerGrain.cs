@@ -19,16 +19,6 @@ internal sealed class PlayerGrain(
         return await characterService.GetCharactersAsync();
     }
 
-    //public override Task OnActivateAsync(CancellationToken cancellationToken)
-    //{
-    //    return base.OnActivateAsync(cancellationToken);
-    //}
-
-    //public override Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
-    //{
-    //    return base.OnDeactivateAsync(reason, cancellationToken);
-    //}
-
     public Task JoinGame(string name, CharacterInfo character)
     {
         _name = name;
@@ -44,61 +34,19 @@ internal sealed class PlayerGrain(
         return Task.CompletedTask;
     }
 
-    public async Task<string?> Play(string command)
+    public async Task<string> Look()
     {
-        command = RemoveUnnecessaryWords(command);
-
-        string[] words = command.Split(' ');
-        string verb = words[0].ToLower();
-
         if (_currentLocation is null)
         {
-            return "You are in the void. Nobody returns from here, but ghosts!";
-        }
-
-        return verb switch
+            return "[grey]You are in the void. Nobody returns from here, but ghosts![/]";
+        } 
+        else
         {
-            "look" =>
-                await _currentLocation.Describe(_name),
-
-            "go" => words.Length == 1
-                ? "[fuchsia]Go where?[/]"
-                : await Go(words[1]),
-
-            //"north" or "south" or "east" or "west" => await Go(verb),
-
-            //"kill" => words.Length == 1
-            //    ? "Kill what?"
-            //    : await Kill(command[(verb.Length + 1)..]),
-
-            //"drop" => await Drop(FindMyThing(Rest(words))),
-
-            //"take" => await Take(await _roomGrain.FindThing(Rest(words))),
-
-            //"inv" or "inventory" =>
-            //"You are carrying: " +
-            //    $"{string.Join(" ", _things.Select(x => x.Name))}",
-
-            "end" => "",
-
-            _ => "[fuchsia]I don't understand[/]"
-        };
+            return await _currentLocation.Describe(_name);
+        }
     }
 
-    private string RemoveUnnecessaryWords(string s)
-    {
-        var words = new[] { " on ", " the ", " a ", " to ", " in " };
-
-        StringBuilder builder = new(s);
-        foreach (var word in words)
-        {
-            builder.Replace(word, " ");
-        }
-
-        return builder.ToString();
-    }
-
-    private async Task<string> Go(string direction)
+    public async Task<string> GoTo(string direction)
     {
         ILocationGrain? destination = null;
         if (_currentLocation is not null)
@@ -131,13 +79,42 @@ internal sealed class PlayerGrain(
         return description.ToString();
     }
 
-    public async Task Die()
+    public Task<string> GoBack()
     {
+        throw new NotImplementedException();
+    }
+
+    public async Task<string> Die()
+    {
+        // TODO: drop all belongings
+
         // exit the room and the game
         if (_currentLocation != null)
         {
             await _currentLocation.Exit(_name);
             _currentLocation = null;
         }
+
+        return string.Empty;
+    }
+
+    public async Task<Dictionary<string, string>> FindDirections()
+    {
+        if (_currentLocation is null) return null;
+
+        var connections = await _currentLocation.GetConnections();
+
+        var result = new Dictionary<string, string>();  
+
+        foreach (var location in connections)
+        {
+            var info = await location.Value.GetInfo();
+            if (info != null)
+            {
+                result.Add(location.Key, info.Title);
+            }
+        }
+
+        return result;
     }
 }

@@ -9,7 +9,7 @@ public class GrainTests(ClusterFixture cluster) : IClassFixture<ClusterFixture>
     public async Task TestSingleGrain()
     {
         var grain = cluster.GrainFactory.GetGrain<IPlayerGrain>(Guid.NewGuid());
-        var result = await grain.Play("nothing");
+        var result = await grain.Look();
 
         Assert.NotNull(result);
     }
@@ -26,7 +26,7 @@ public class GrainTests(ClusterFixture cluster) : IClassFixture<ClusterFixture>
         for (int i = 0; i < numberOfGrains; i++)
         {
             var grain = cluster.GrainFactory.GetGrain<IPlayerGrain>(Guid.NewGuid());
-            var result = await grain.Play("nothing");
+            var result = await grain.Look();
             Assert.NotNull(result);
         }
     }

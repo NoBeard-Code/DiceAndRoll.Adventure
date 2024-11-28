@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
+using System.Text;
 
 var builder = Host.CreateDefaultBuilder(args);
 
@@ -45,7 +46,7 @@ await AnsiConsole.Status()
         {
             await host.StartAsync();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             error = true;
         }
@@ -97,19 +98,21 @@ AnsiConsole.WriteLine();
 await AnsiConsole.Status()
     .StartAsync("Entering the map...", async ctx =>
     {
-        var result = await player.Play("look");
-        AnsiConsole.MarkupLine($"[purple]{result}[/]");
+        var result = await player.Look();
+        AnsiConsole.MarkupLine(result);
     });
 
-var result = "Start";
+string response = "start";
 try
 {
-    while (result is not "")
+    while (response is not "")
     {
-        var command = Console.ReadLine()!;
+        var command = AnsiConsole.Prompt(new TextPrompt<string>("What will you do?")
+            .AddChoices(["look", "go", "quit"])
+            .DefaultValue("look"));
 
-        result = await player.Play(command);
-        AnsiConsole.MarkupLine($"{result}");
+        response = await Run(command);
+        AnsiConsole.MarkupLine($"{response}");
     }
 }
 finally
@@ -120,3 +123,65 @@ finally
 }
 
 Console.ReadLine();
+
+async Task<string> Run(string command)
+{
+    command = RemoveUnnecessaryWords(command);
+
+    string[] words = command.Split(' ');
+    string verb = words[0].ToLower();
+
+    return verb switch
+    {
+        "look" =>
+            await player.Look(),
+
+        "go" => 
+            await GoPrompt(),
+
+        "quit" =>
+            await player.Die(),
+
+        _ => "[fuchsia]I don't understand[/]"
+    }; 
+}
+
+async Task<string> GoPrompt()
+{
+    var directions = await player.FindDirections();
+
+    if (directions is null || directions.Count == 0)
+    {
+        return "[grey]No directions from here. You are in the void.[/]";
+    }
+    else
+    {
+        directions.Add(string.Empty, "cancel");
+
+        var command = AnsiConsole.Prompt(new TextPrompt<string>("[fuchsia]Go where?[/]")
+            .AddChoices(directions.Values)
+            .DefaultValue(directions.First().Value));
+
+        if (command != "cancel")
+        {
+            var choice = directions.First(x => x.Value == command).Key;
+            return await player.GoTo(choice);
+        }
+
+        return "Okay. Let's try something else...";
+    }
+}
+
+
+string RemoveUnnecessaryWords(string s)
+{
+    var words = new[] { " on ", " the ", " a ", " to ", " in " };
+
+    StringBuilder builder = new(s);
+    foreach (var word in words)
+    {
+        builder.Replace(word, " ");
+    }
+
+    return builder.ToString();
+}

@@ -37,7 +37,7 @@ public class DashboardTests
             tasks.Add(Task.Run(async () =>
             {
                 var grain = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
-                var result = await grain.Play("nothing");
+                var result = await grain.Look();
             }));
         }
 

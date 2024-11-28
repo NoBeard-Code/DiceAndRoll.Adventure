@@ -11,7 +11,7 @@ public class ClientTests(ClusterFixture cluster) : IClassFixture<ClusterFixture>
         var client = cluster.GetClient();
 
         var grain = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
-        var result = await grain.Play("nothing");
+        var result = await grain.Look();
 
         Assert.NotNull(result);
     }
@@ -38,7 +38,7 @@ public class ClientTests(ClusterFixture cluster) : IClassFixture<ClusterFixture>
             tasks.Add(Task.Run(async () =>
             {
                 var grain = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
-                var result = await grain.Play("nothing");
+                var result = await grain.Look();
             }));
         }
 
