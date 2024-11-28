@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35506.116 d17.12
+VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceAndRoll.Adventure.Server", "DiceAndRoll.Adventure.Server\DiceAndRoll.Adventure.Server.csproj", "{6F5EA1E0-83B3-45DE-BAD6-6F5A3B99441C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceAndRoll.Adventure.Shared", "DiceAndRoll.Adventure.Shared\DiceAndRoll.Adventure.Shared.csproj", "{7E7A15C4-BE3E-48C1-A432-9EE511FCEBA1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceAndRoll.Adventure.ConsoleApp", "DiceAndRoll.Adventure.ConsoleApp\DiceAndRoll.Adventure.ConsoleApp.csproj", "{23752775-DF38-4F57-A42C-59EEFDBCE190}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceAndRoll.Adventure.UnitTests", "DiceAndRoll.Adventure.UnitTests\DiceAndRoll.Adventure.UnitTests.csproj", "{BFF4A0EC-F3A8-40BB-A6E7-F15D096E3EF6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{23752775-DF38-4F57-A42C-59EEFDBCE190}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23752775-DF38-4F57-A42C-59EEFDBCE190}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23752775-DF38-4F57-A42C-59EEFDBCE190}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFF4A0EC-F3A8-40BB-A6E7-F15D096E3EF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFF4A0EC-F3A8-40BB-A6E7-F15D096E3EF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFF4A0EC-F3A8-40BB-A6E7-F15D096E3EF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFF4A0EC-F3A8-40BB-A6E7-F15D096E3EF6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
