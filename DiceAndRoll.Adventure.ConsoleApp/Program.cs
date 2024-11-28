@@ -106,7 +106,7 @@ try
         var command = Console.ReadLine()!;
 
         result = await player.Play(command);
-        AnsiConsole.WriteLine(result);
+        AnsiConsole.MarkupLine($"[purple]{result}[/]");
     }
 }
 finally
