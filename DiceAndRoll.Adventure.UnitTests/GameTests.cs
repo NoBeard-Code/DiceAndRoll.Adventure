@@ -3,7 +3,6 @@ using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using DiceAndRoll.Adventure.UnitTests.Fixtures;
 using Orleans.TestingHost;
-using System.Diagnostics.Metrics;
 using System.Reflection;
 
 namespace DiceAndRoll.Adventure.UnitTests;
