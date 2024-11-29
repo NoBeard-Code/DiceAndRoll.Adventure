@@ -44,5 +44,7 @@ public class DashboardTests
         await Task.WhenAll(tasks);
 
         Thread.Sleep(2 * 60 * 1000);
+
+        cluster.StopAllSilos();
     }
 }

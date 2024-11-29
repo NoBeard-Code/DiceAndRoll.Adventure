@@ -14,6 +14,7 @@ internal sealed class PlayerGrain(
 
     private PlayerInfo _self = null!;
     private ILocationGrain? _currentLocation;
+    private bool _died = false;
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
@@ -29,6 +30,7 @@ internal sealed class PlayerGrain(
     public async Task JoinGame(string name, CharacterInfo character)
     {
         _self = _self with { Name = name };
+        _died = false;
 
         var firstLocation = GrainFactory.GetGrain<ILocationGrain>(FIRST_LOCATION);
 
@@ -113,6 +115,8 @@ internal sealed class PlayerGrain(
             _currentLocation = null;
         }
 
+        _died = true;
+
         return string.Empty;
     }
 
@@ -143,5 +147,10 @@ internal sealed class PlayerGrain(
         var players = await _currentLocation.GetPlayers();
 
         return players.Where(x => x.Key != _self.Key).ToList();
+    }
+
+    public Task<bool> AmIDead()
+    {
+        return Task.FromResult(_died);
     }
 }
