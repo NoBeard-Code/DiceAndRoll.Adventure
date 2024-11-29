@@ -21,4 +21,6 @@ public interface IPlayerGrain : IGrainWithGuidKey
     Task<Dictionary<string, string>> FindDirections();
 
     Task<List<PlayerInfo>> FindOthers();
+
+    Task<bool> AmIDead();
 }

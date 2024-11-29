@@ -5,9 +5,9 @@ using Newtonsoft.Json;
 
 namespace DiceAndRoll.Adventure.Server;
 
-internal sealed class Game(IGrainFactory grainFactory)
+public sealed class Game(IGrainFactory grainFactory)
 {
-    internal async Task StartAsync(string campaignFile)
+    public async Task StartAsync(string campaignFile)
     {
         // Read the contents of the game file and deserialize it
         var jsonData = await File.ReadAllTextAsync(campaignFile);
