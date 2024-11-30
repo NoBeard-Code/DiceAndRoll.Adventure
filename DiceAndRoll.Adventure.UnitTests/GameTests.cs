@@ -10,7 +10,7 @@ namespace DiceAndRoll.Adventure.UnitTests;
 public class GameTests
 {
     [Theory]
-    [InlineData(25)]
+    [InlineData(100)]
     public async Task TestGame_BattleRoyale(int numberOfPlayers)
     {
         var cluster = new TestClusterBuilder()
@@ -64,7 +64,7 @@ public class GameTests
         cluster.StopAllSilos();
     }
 
-    private async Task UseCampaignMap(TestCluster cluster)
+    private static async Task UseCampaignMap(TestCluster cluster)
     {
         var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         var campaignFile = Path.Combine(path, "Data/campaign.json");
@@ -82,15 +82,13 @@ public class GameTests
             return true;
         }
 
-        // wait for some time, look around, and if alone - move forward on the map,
-        // otherwise, try to make some kill.
-
         Thread.Sleep(Random.Shared.Next(0, 2000));
 
         await player.Look();
 
         var others = await player.FindOthers();
 
+        // if alone - move forward on the map
         if (others == null || others.Count == 0)
         {
             var directions = await player.FindDirections();
@@ -101,7 +99,9 @@ public class GameTests
             }
             else
             {
-                var choice = directions.First().Key;
+                // move to a random location
+                var choices = directions.Keys.ToList();                
+                var choice = choices[Random.Shared.Next(0, choices.Count - 1)];
                 await player.GoTo(choice);
             }
         }
