@@ -39,6 +39,7 @@ AnsiConsole.WriteLine();
 bool error = false;
 
 var client = host.Services.GetRequiredService<IClusterClient>();
+IDirectoryGrain? directory = null;
 
 await AnsiConsole.Status()
     .Spinner(Spinner.Known.Star)
@@ -49,7 +50,7 @@ await AnsiConsole.Status()
         {
             await host.StartAsync();
 
-            var directory = client.GetGrain<IDirectoryGrain>(Guid.Empty);
+            directory = client.GetGrain<IDirectoryGrain>(Guid.Empty);
 
             var activeGames = await directory.GetActiveGames();
             if (activeGames == null || activeGames.Count == 0) throw new Exception();
@@ -73,9 +74,9 @@ AnsiConsole.MarkupLine($"[green]Game successfully loaded.[/]");
 var name = AnsiConsole.Prompt(
     new TextPrompt<string>("What will be your name in this game?"));
 
-var player = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
+var characters = await directory!.GetCharacters();
 
-var characters = await player.GetCharacters();
+var player = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
 
 var prompt = AnsiConsole.Prompt(
     new SelectionPrompt<string>()

@@ -1,5 +1,4 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
-using DiceAndRoll.Adventure.Shared.Models;
 using DiceAndRoll.Adventure.UnitTests.Fixtures;
 using Orleans.TestingHost;
 using System.Reflection;
@@ -24,6 +23,37 @@ public class GameTests
         cluster.StopAllSilos();
     }
 
+    [Fact]
+    public async Task TestGame_SinglePlayer()
+    {
+        var cluster = new TestClusterBuilder()
+            .AddSiloBuilderConfigurator<TestSiloConfiguration>()
+            .Build();
+
+        cluster.Deploy();
+
+        var game = await ConfigureGameAsync(cluster);
+
+        var directory = cluster.GrainFactory.GetGrain<IDirectoryGrain>(Guid.Empty);
+
+        var character = (await directory.GetCharacters()).First();
+        
+        var client = cluster.Client;
+
+        var name = Guid.NewGuid();
+        var player = client.GetGrain<IPlayerGrain>(name);
+
+        await player.JoinGame(name.ToString(), character!);
+
+        await player.Die();
+
+        Assert.True(await player.AmIDead());
+
+        await game.End();
+
+        cluster.StopAllSilos();
+    }
+
     [Theory]
     [InlineData(100)]
     public async Task TestGame_BattleRoyale(int numberOfPlayers)
@@ -37,6 +67,10 @@ public class GameTests
         // use real campaign map for this test
         var game = await ConfigureGameAsync(cluster);
 
+        var directory = cluster.GrainFactory.GetGrain<IDirectoryGrain>(Guid.Empty);
+
+        var character = (await directory.GetCharacters()).First();
+
         var players = new List<IPlayerGrain>();
 
         for (int i = 0; i < numberOfPlayers; i++)
@@ -44,13 +78,7 @@ public class GameTests
             var client = cluster.Client;
 
             var name = Guid.NewGuid();
-            CharacterInfo character = null;
-
             var player = client.GetGrain<IPlayerGrain>(name);
-            if (i == 0)
-            {
-                character = (await player.GetCharacters()).First();
-            }
 
             players.Add(player);
 

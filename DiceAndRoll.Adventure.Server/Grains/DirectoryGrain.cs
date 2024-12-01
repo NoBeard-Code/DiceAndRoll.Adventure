@@ -1,12 +1,10 @@
-﻿using DiceAndRoll.Adventure.Shared.Grains;
+﻿using DiceAndRoll.Adventure.Server.Services;
+using DiceAndRoll.Adventure.Shared.Grains;
+using DiceAndRoll.Adventure.Shared.Models;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
-/// <summary>
-/// This grain acts like a singleton, i.e. a directory for fetching available grains, without knowing their keys upfront.
-/// It's called with providing a Guid.Empty as its primary key.
-/// </summary>
-internal sealed class DirectoryGrain : Grain, IDirectoryGrain
+internal sealed class DirectoryGrain(ICharacterService characterService) : Grain, IDirectoryGrain, ISingletonGrain
 {
     private readonly HashSet<Guid> _activeGames = new();
 
@@ -25,5 +23,10 @@ internal sealed class DirectoryGrain : Grain, IDirectoryGrain
     public Task<List<Guid>> GetActiveGames()
     {
         return Task.FromResult(_activeGames.ToList());
+    }
+
+    public Task<List<CharacterInfo>> GetCharacters()
+    {
+        return characterService.GetCharactersAsync();
     }
 }

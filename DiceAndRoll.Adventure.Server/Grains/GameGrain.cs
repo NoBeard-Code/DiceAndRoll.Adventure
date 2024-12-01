@@ -42,7 +42,7 @@ internal sealed class GameGrain(ICampaignService campaignService) : Grain, IGame
     {
         Console.WriteLine("Adding location: {0}", location.Name);
 
-        var grain = this.GrainFactory.GetGrain<ILocationGrain>(location.Name);
+        var grain = GrainFactory.GetGrain<ILocationGrain>(location.Name);
         await grain.Configure(location);
         return grain;
     }

@@ -1,12 +1,10 @@
-﻿using DiceAndRoll.Adventure.Server.Services;
-using DiceAndRoll.Adventure.Shared.Grains;
+﻿using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
 internal sealed class PlayerGrain(
-    ICharacterService characterService,
     [PersistentState("player", "game")] IPersistentState<CharacterInfo> state) : Grain, IPlayerGrain
 {
     private const string FIRST_LOCATION = "lighthouse";
@@ -19,11 +17,6 @@ internal sealed class PlayerGrain(
     {
         _self = new PlayerInfo(this.GetPrimaryKey(), "nobody");
         return base.OnActivateAsync(cancellationToken);
-    }
-
-    public async Task<List<CharacterInfo>> GetCharacters()
-    {
-        return await characterService.GetCharactersAsync();
     }
 
     public async Task JoinGame(string name, CharacterInfo character)

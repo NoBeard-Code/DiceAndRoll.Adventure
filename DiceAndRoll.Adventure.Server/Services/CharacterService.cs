@@ -8,11 +8,6 @@ public sealed class CharacterService : ICharacterService
 {
     private readonly List<CharacterInfo> _characters = [];
 
-    public CharacterService()
-    {
-        LoadCharactersAsync().GetAwaiter().GetResult();
-    }
-
     private async Task LoadCharactersAsync()
     {
         var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
@@ -30,5 +25,13 @@ public sealed class CharacterService : ICharacterService
         }
     }
 
-    public Task<List<CharacterInfo>> GetCharactersAsync() => Task.FromResult(_characters);
+    public async Task<List<CharacterInfo>> GetCharactersAsync()
+    {
+        if (_characters.Count == 0)
+        {
+            await LoadCharactersAsync();
+        }
+
+        return _characters;
+    }
 }

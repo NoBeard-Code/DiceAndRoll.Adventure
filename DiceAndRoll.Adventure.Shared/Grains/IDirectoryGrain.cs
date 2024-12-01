@@ -1,4 +1,6 @@
-﻿namespace DiceAndRoll.Adventure.Shared.Grains;
+﻿using DiceAndRoll.Adventure.Shared.Models;
+
+namespace DiceAndRoll.Adventure.Shared.Grains;
 
 public interface IDirectoryGrain : IGrainWithGuidKey
 {
@@ -7,4 +9,6 @@ public interface IDirectoryGrain : IGrainWithGuidKey
     Task UnregisterGame(Guid gameId);
 
     Task<List<Guid>> GetActiveGames();
+
+    Task<List<CharacterInfo>> GetCharacters();
 }
