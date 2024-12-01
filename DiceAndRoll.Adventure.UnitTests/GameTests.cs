@@ -1,5 +1,4 @@
-﻿using DiceAndRoll.Adventure.Server;
-using DiceAndRoll.Adventure.Shared.Grains;
+﻿using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using DiceAndRoll.Adventure.UnitTests.Fixtures;
 using Orleans.TestingHost;
@@ -9,6 +8,22 @@ namespace DiceAndRoll.Adventure.UnitTests;
 
 public class GameTests
 {
+    [Fact]
+    public async Task TestGame_ConfigureAndStart()
+    {
+        var cluster = new TestClusterBuilder()
+            .AddSiloBuilderConfigurator<TestSiloConfiguration>()
+            .Build();
+
+        cluster.Deploy();
+
+        var game = await ConfigureGameAsync(cluster);
+
+        await game.End();
+
+        cluster.StopAllSilos();
+    }
+
     [Theory]
     [InlineData(100)]
     public async Task TestGame_BattleRoyale(int numberOfPlayers)
@@ -20,7 +35,7 @@ public class GameTests
         cluster.Deploy();
 
         // use real campaign map for this test
-        await UseCampaignMap(cluster);
+        var game = await ConfigureGameAsync(cluster);
 
         var players = new List<IPlayerGrain>();
 
@@ -61,16 +76,19 @@ public class GameTests
             }
         }
 
+        await game.End();
+
         cluster.StopAllSilos();
     }
 
-    private static async Task UseCampaignMap(TestCluster cluster)
+    private static async Task<IGameGrain> ConfigureGameAsync(TestCluster cluster)
     {
         var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         var campaignFile = Path.Combine(path, "Data/campaign.json");
 
-        var game = new Game(cluster.GrainFactory);
-        await game.StartAsync(campaignFile);
+        var game = cluster.GrainFactory.GetGrain<IGameGrain>(Guid.NewGuid(), campaignFile);
+        await game.ConfigureAndStart(campaignFile);
+        return game;
     }
 
     private static async Task<bool> SimulatePlayerMove(IPlayerGrain player)

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
-public sealed class LocationGrain(
+internal sealed class LocationGrain(
     [PersistentState("location", "game")] IPersistentState<LocationInfo> state) 
     : Grain, ILocationGrain
 {

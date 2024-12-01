@@ -2,5 +2,5 @@
 
 namespace DiceAndRoll.Adventure.Server.Models;
 
-internal record Campaign(string Name, List<LocationInfo> Locations);
+public record Campaign(string Name, List<LocationInfo> Locations);
 

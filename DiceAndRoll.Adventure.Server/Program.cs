@@ -1,5 +1,5 @@
-﻿using DiceAndRoll.Adventure.Server;
-using DiceAndRoll.Adventure.Server.Services;
+﻿using DiceAndRoll.Adventure.Server.Services;
+using DiceAndRoll.Adventure.Shared.Grains;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Reflection;
@@ -28,9 +28,9 @@ builder.UseOrleans(siloBuilder =>
 });
 
 builder.ConfigureServices(services => {
-    services.AddSingleton<Game>();
     services.AddSingleton<ICharacterService, CharacterService>();
-    });
+    services.AddSingleton<ICampaignService, CampaignService>();
+});
 
 var host = builder.Build();   
 
@@ -40,14 +40,18 @@ Console.WriteLine("Map file name is '{0}'.", campaignFile);
 Console.WriteLine("Setting up Dice & Roll Adventure game, please wait ...");
 
 // Initialize the game world
-var adventure = host.Services.GetRequiredService<Game>();
-await adventure.StartAsync(campaignFile);
+var grainFactory = host.Services.GetRequiredService<IGrainFactory>();
+
+var game = grainFactory.GetGrain<IGameGrain>(Guid.NewGuid(), campaignFile);
+await game.ConfigureAndStart(campaignFile);
 
 Console.WriteLine("Game setup completed.");
 Console.WriteLine("Now you can invite the players to play the game :)...");
 
 Console.WriteLine("Press any key to exit.");
 Console.ReadKey();
+
+await game.End();
 
 await host.StopAsync();
 

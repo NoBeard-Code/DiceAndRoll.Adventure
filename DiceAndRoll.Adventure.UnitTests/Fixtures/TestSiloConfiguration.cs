@@ -13,6 +13,7 @@ internal class TestSiloConfiguration : ISiloConfigurator
         siloBuilder.ConfigureServices(static services =>
         {
             services.AddSingleton<ICharacterService, FakeCharacterService>();
+            services.AddSingleton<ICampaignService, CampaignService>();
         });
     }
 }
