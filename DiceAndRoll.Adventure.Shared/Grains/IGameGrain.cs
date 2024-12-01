@@ -1,12 +1,12 @@
 ﻿namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IGameGrain : IGrainWithGuidCompoundKey
+public interface IGameGrain : IGrainWithGuidKey
 {
     Task ConfigureAndStart(string campaignFile);
 
     Task End();
 
-    Task Join();
+    Task Join(IPlayerGrain player);
 
-    Task Leave();
+    Task Leave(IPlayerGrain player);
 }

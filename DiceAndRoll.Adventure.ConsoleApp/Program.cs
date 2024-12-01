@@ -38,6 +38,8 @@ AnsiConsole.WriteLine("""
 AnsiConsole.WriteLine();
 bool error = false;
 
+var client = host.Services.GetRequiredService<IClusterClient>();
+
 await AnsiConsole.Status()
     .Spinner(Spinner.Known.Star)
     .SpinnerStyle(Style.Parse("green bold"))
@@ -46,6 +48,13 @@ await AnsiConsole.Status()
         try
         {
             await host.StartAsync();
+
+            var directory = client.GetGrain<IDirectoryGrain>(Guid.Empty);
+
+            var activeGames = await directory.GetActiveGames();
+            if (activeGames == null || activeGames.Count == 0) throw new Exception();
+
+            var game = client.GetGrain<IGameGrain>(activeGames[0]);
         }
         catch (Exception)
         {
@@ -64,7 +73,6 @@ AnsiConsole.MarkupLine($"[green]Game successfully loaded.[/]");
 var name = AnsiConsole.Prompt(
     new TextPrompt<string>("What will be your name in this game?"));
 
-var client = host.Services.GetRequiredService<IClusterClient>();
 var player = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
 
 var characters = await player.GetCharacters();

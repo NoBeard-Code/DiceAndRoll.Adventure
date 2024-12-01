@@ -86,7 +86,7 @@ public class GameTests
         var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         var campaignFile = Path.Combine(path, "Data/campaign.json");
 
-        var game = cluster.GrainFactory.GetGrain<IGameGrain>(Guid.NewGuid(), campaignFile);
+        var game = cluster.GrainFactory.GetGrain<IGameGrain>(Guid.NewGuid());
         await game.ConfigureAndStart(campaignFile);
         return game;
     }

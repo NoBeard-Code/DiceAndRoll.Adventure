@@ -42,10 +42,10 @@ Console.WriteLine("Setting up Dice & Roll Adventure game, please wait ...");
 // Initialize the game world
 var grainFactory = host.Services.GetRequiredService<IGrainFactory>();
 
-var game = grainFactory.GetGrain<IGameGrain>(Guid.NewGuid(), campaignFile);
+var game = grainFactory.GetGrain<IGameGrain>(Guid.NewGuid());
 await game.ConfigureAndStart(campaignFile);
 
-Console.WriteLine("Game setup completed.");
+Console.WriteLine($"Game setup completed for game: {game.GetPrimaryKey()}.");
 Console.WriteLine("Now you can invite the players to play the game :)...");
 
 Console.WriteLine("Press any key to exit.");
