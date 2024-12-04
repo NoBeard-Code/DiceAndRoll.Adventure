@@ -21,21 +21,12 @@ builder
 
 var host = builder.Build();
 
-// https://www.asciiart.eu/text-to-ascii-art
+AnsiConsole.Clear();
+AnsiConsole.MarkupLineInterpolated($"[bold yellow]{Constants.LOGO_TEXT_ART}[/]");
 
-AnsiConsole.WriteLine("""
-     ____  _             ___     ____       _ _                                   
-    |  _ \(_) ___ ___   ( _ )   |  _ \ ___ | | |                                  
-    | | | | |/ __/ _ \  / _ \/\ | |_) / _ \| | |                                  
-    | |_| | | (_|  __/ | (_>  < |  _ < (_) | | |                                  
-    |____/|_|\___\___|  \___/\/ |_| \_\___/|_|_|        ____                      
-       / \   __| |_   _____ _ __ | |_ _   _ _ __ ___   / ___| __ _ _ __ ___   ___ 
-      / _ \ / _` \ \ / / _ \ '_ \| __| | | | '__/ _ \ | |  _ / _` | '_ ` _ \ / _ \
-     / ___ \ (_| |\ V /  __/ | | | |_| |_| | | |  __/ | |_| | (_| | | | | | |  __/
-    /_/   \_\__,_| \_/ \___|_| |_|\__|\__,_|_|  \___|  \____|\__,_|_| |_| |_|\___|
-    """);
+AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game || Player Console[/]" + Environment.NewLine);
+AnsiConsole.MarkupLine("[silver]Please await while the console configures...[/]");
 
-AnsiConsole.WriteLine();
 bool error = false;
 
 var client = host.Services.GetRequiredService<IClusterClient>();

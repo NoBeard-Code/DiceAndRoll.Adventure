@@ -1,12 +1,16 @@
 ﻿using DiceAndRoll.Adventure.Server.Configuration;
 using DiceAndRoll.Adventure.Shared.Grains;
+using DiceAndRoll.Adventure.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Spectre.Console;
 using System.Reflection;
 
-AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game[/]");
-AnsiConsole.MarkupLine("[silver]Please await while the game server configures...[/]");
+AnsiConsole.Clear();
+AnsiConsole.MarkupLineInterpolated($"[bold yellow]{Constants.LOGO_TEXT_ART}[/]");
+
+AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game || Game Server[/]" + Environment.NewLine);
+AnsiConsole.MarkupLine("[silver]Please await while the game server configures...[/]" + Environment.NewLine);
 
 IHost? host = null;
 
@@ -23,6 +27,7 @@ await AnsiConsole.Status()
 AnsiConsole.MarkupLine("[green]Microsoft Orleans successfully configured.[/]");
 
 IGameGrain? game = null;
+IGrainFactory? grainFactory = null;
 
 await AnsiConsole.Status()
     .StartAsync("Setting up the game server...", async ctx =>
@@ -41,7 +46,7 @@ await AnsiConsole.Status()
         AnsiConsole.MarkupLine("Setting up Dice & Roll Adventure game, please wait ...");
 
         // Initialize the game world
-        var grainFactory = host!.Services.GetRequiredService<IGrainFactory>();
+        grainFactory = host!.Services.GetRequiredService<IGrainFactory>();
 
         game = grainFactory.GetGrain<IGameGrain>(Guid.NewGuid());
         await game.ConfigureAndStart(campaignFile);
@@ -50,20 +55,18 @@ await AnsiConsole.Status()
 AnsiConsole.MarkupLine("[green]Game server successfully configured.[/]");
 
 AnsiConsole.MarkupLine($"[olive]Loading game completed for game: {game.GetPrimaryKey()}.[/]");
-AnsiConsole.MarkupLine("[bold yellow]Now you can invite the players to play the game :)...[/]");
-
-AnsiConsole.MarkupLine(string.Empty);
+AnsiConsole.MarkupLine("[bold yellow]Now you can invite the players to play the game :)...[/]" + Environment.NewLine);
 
 try
 {
-    var response = string.Empty;
-    while (response is not "end")
+    var exit = false;
+    while (exit is false)
     {
         var command = AnsiConsole.Prompt(new TextPrompt<string>("Command:")
             .AddChoices(["stats", "context", "quit"])
             .DefaultValue("stats"));
 
-        response = await Run(command);
+        exit = await Run(command);
     }
 }
 finally
@@ -74,26 +77,58 @@ finally
     AnsiConsole.MarkupLine("You can close this window now.");
 }
 
-async Task<string> Run(string command)
+return 0;
+
+async Task<bool> Run(string command)
 {
     command = command.ToLower();
 
-    return command switch
+    switch (command)
     {
-        "stats" =>
-            //await player.Look(),
-            string.Empty,
+        case "stats":
+            return await DisplayGameStats(grainFactory!);
+            
+        case "context":
+            break;
 
-        "context" =>
-            //await GoPrompt(),
-            string.Empty,
+        case "quit":
+            return true;
 
-        "quit" =>
-            //await player.Die(),
-            "end",
-
-        _ => "[fuchsia]I don't understand[/]"
+        default:
+            AnsiConsole.MarkupLine("[fuchsia]I don't understand[/]");
+            break;
     };
+
+    return false;
 }
 
-return 0;
+async Task<bool> DisplayGameStats(IGrainFactory grainFactory)
+{
+    AnsiConsole.WriteLine();
+
+    var directory = grainFactory.GetGrain<IDirectoryGrain>(Guid.Empty);
+    var games = await directory.GetActiveGames();
+    var items = games.Select(game => new { Label = game.ToString(), Value = 24 });
+
+    AnsiConsole.Write(new BarChart()
+        .Width(60)
+        .Label("[green bold underline]Active games/players[/]")
+        .AddItems(items, (item) => new BarChartItem(
+        item.Label, item.Value, Color.Yellow)));
+
+    AnsiConsole.WriteLine("Characters breakdown:");
+
+    AnsiConsole.Write(new BreakdownChart()
+        .Width(60)
+        // Add item is in the order of label, value, then color.
+        .AddItem("Gunslinger", 1, Color.Red)
+        .AddItem("Automaton", 0, Color.Blue)
+        .AddItem("Musketeer", 3, Color.Green)
+        .AddItem("Alchemist", 6, Color.Yellow)
+        .AddItem("Assasin", 4, Color.LightGreen)
+        .AddItem("Illusionist", 2, Color.Aqua));
+
+    AnsiConsole.WriteLine();
+
+    return false;
+}
