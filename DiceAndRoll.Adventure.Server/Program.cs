@@ -53,11 +53,47 @@ AnsiConsole.MarkupLine($"[olive]Loading game completed for game: {game.GetPrimar
 AnsiConsole.MarkupLine("[bold yellow]Now you can invite the players to play the game :)...[/]");
 
 AnsiConsole.MarkupLine(string.Empty);
-AnsiConsole.MarkupLine("[grey]Press any key to exit.[/]");
-Console.ReadKey();
 
-await game!.End();
+try
+{
+    var response = string.Empty;
+    while (response is not "end")
+    {
+        var command = AnsiConsole.Prompt(new TextPrompt<string>("Command:")
+            .AddChoices(["stats", "context", "quit"])
+            .DefaultValue("stats"));
 
-await host!.StopAsync();
+        response = await Run(command);
+    }
+}
+finally
+{
+    await game!.End();
+    AnsiConsole.MarkupLine("[red]Game server shut down![/]");
+    await host!.StopAsync();
+    AnsiConsole.MarkupLine("You can close this window now.");
+}
+
+async Task<string> Run(string command)
+{
+    command = command.ToLower();
+
+    return command switch
+    {
+        "stats" =>
+            //await player.Look(),
+            string.Empty,
+
+        "context" =>
+            //await GoPrompt(),
+            string.Empty,
+
+        "quit" =>
+            //await player.Die(),
+            "end",
+
+        _ => "[fuchsia]I don't understand[/]"
+    };
+}
 
 return 0;
