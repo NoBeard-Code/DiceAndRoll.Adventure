@@ -1,58 +1,63 @@
-﻿using DiceAndRoll.Adventure.Server.Services;
+﻿using DiceAndRoll.Adventure.Server.Configuration;
 using DiceAndRoll.Adventure.Shared.Grains;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Spectre.Console;
 using System.Reflection;
 
-var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-var campaignFile = Path.Combine(path, "Data/campaign.json");
+AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game[/]");
+AnsiConsole.MarkupLine("[silver]Please await while the game server configures...[/]");
 
-if (args.Length > 0)
-{
-    campaignFile = args[0];
-}
+IHost? host = null;
 
-if (!File.Exists(campaignFile))
-{
-    Console.WriteLine("Campaign file not found: {0}", campaignFile);
-    return -1;
-}
+await AnsiConsole.Status()
+    .StartAsync("Configuring Orleans...", async ctx => {
 
-var builder = Host.CreateDefaultBuilder(args);
+        var builder = Host.CreateDefaultBuilder(args);
+        builder.Configure();
+        host = builder.Build();
 
-builder.UseOrleans(siloBuilder =>
-{
-    siloBuilder.UseLocalhostClustering();
-    siloBuilder.AddMemoryGrainStorage("game");
-    siloBuilder.UseDashboard();
+        await host.StartAsync();
+    });
+
+AnsiConsole.MarkupLine("[green]Microsoft Orleans successfully configured.[/]");
+
+IGameGrain? game = null;
+
+await AnsiConsole.Status()
+    .StartAsync("Setting up the game server...", async ctx =>
+    {
+        ctx.Status("Loading campaigns...");
+
+        var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        var campaignFile = Path.Combine(path, "Data/campaign.json");
+
+        if (!File.Exists(campaignFile))
+        {
+            AnsiConsole.MarkupLine("[red]Campaign file not found: {0}[/]", campaignFile);
+            throw new ApplicationException();
+        }
+
+        AnsiConsole.MarkupLine("Setting up Dice & Roll Adventure game, please wait ...");
+
+        // Initialize the game world
+        var grainFactory = host!.Services.GetRequiredService<IGrainFactory>();
+
+        game = grainFactory.GetGrain<IGameGrain>(Guid.NewGuid());
+        await game.ConfigureAndStart(campaignFile);
 });
 
-builder.ConfigureServices(services => {
-    services.AddSingleton<ICharacterService, CharacterService>();
-    services.AddSingleton<ICampaignService, CampaignService>();
-});
+AnsiConsole.MarkupLine("[green]Game server successfully configured.[/]");
 
-var host = builder.Build();   
+AnsiConsole.MarkupLine($"[olive]Loading game completed for game: {game.GetPrimaryKey()}.[/]");
+AnsiConsole.MarkupLine("[bold yellow]Now you can invite the players to play the game :)...[/]");
 
-await host.StartAsync();
-
-Console.WriteLine("Map file name is '{0}'.", campaignFile);
-Console.WriteLine("Setting up Dice & Roll Adventure game, please wait ...");
-
-// Initialize the game world
-var grainFactory = host.Services.GetRequiredService<IGrainFactory>();
-
-var game = grainFactory.GetGrain<IGameGrain>(Guid.NewGuid());
-await game.ConfigureAndStart(campaignFile);
-
-Console.WriteLine($"Game setup completed for game: {game.GetPrimaryKey()}.");
-Console.WriteLine("Now you can invite the players to play the game :)...");
-
-Console.WriteLine("Press any key to exit.");
+AnsiConsole.MarkupLine(string.Empty);
+AnsiConsole.MarkupLine("[grey]Press any key to exit.[/]");
 Console.ReadKey();
 
-await game.End();
+await game!.End();
 
-await host.StopAsync();
+await host!.StopAsync();
 
 return 0;

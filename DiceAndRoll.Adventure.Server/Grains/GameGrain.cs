@@ -27,8 +27,6 @@ internal sealed class GameGrain(ICampaignService campaignService) : Grain, IGame
     {
         var campaign = await campaignService.LoadAsync(campaignFile);
 
-        Console.WriteLine("Campaign selected: {0}", campaign);
-
         var locations = await campaignService.GetLocationsAsync();
 
         // Initialize the game world using the game data
@@ -40,8 +38,6 @@ internal sealed class GameGrain(ICampaignService campaignService) : Grain, IGame
 
     private async Task<ILocationGrain> AddLocationAsync(LocationInfo location)
     {
-        Console.WriteLine("Adding location: {0}", location.Name);
-
         var grain = GrainFactory.GetGrain<ILocationGrain>(location.Name);
         await grain.Configure(location);
         return grain;
