@@ -1,4 +1,5 @@
-﻿using DiceAndRoll.Adventure.Shared.Grains;
+﻿using DiceAndRoll.Adventure.Shared;
+using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,6 +8,8 @@ using Spectre.Console;
 using System.Text;
 
 var builder = Host.CreateDefaultBuilder(args);
+
+AspireUtils.IsAspireConfigured();
 
 builder
     .UseOrleansClient(siloBuilder =>
