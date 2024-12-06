@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DiceAndRoll.Adventure.ConsoleApp\DiceAndRoll.Adventure.ConsoleApp.csproj" />
     <ProjectReference Include="..\DiceAndRoll.Adventure.Server\DiceAndRoll.Adventure.Server.csproj" />
   </ItemGroup>
 
