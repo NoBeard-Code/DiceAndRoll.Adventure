@@ -1,5 +1,4 @@
 ﻿using DiceAndRoll.Adventure.Server.Configuration;
-using DiceAndRoll.Adventure.Shared;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,8 +17,6 @@ await AnsiConsole.Status()
     .StartAsync("Configuring Orleans...", async ctx => {
 
         var builder = Host.CreateDefaultBuilder(args);
-
-        AspireUtils.IsAspireConfigured();
 
         builder.Configure();
 

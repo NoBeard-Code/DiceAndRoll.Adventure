@@ -9,7 +9,10 @@ using System.Text;
 
 var builder = Host.CreateDefaultBuilder(args);
 
-AspireUtils.IsAspireConfigured();
+if (AspireUtils.IsAspireConfigured())
+{
+    builder.AddServiceDefaults();
+}
 
 builder
     .UseOrleansClient(siloBuilder =>

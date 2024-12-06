@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DiceAndRoll.Adventure.Aspire.ServiceDefaults\DiceAndRoll.Adventure.Aspire.ServiceDefaults.csproj" />
     <ProjectReference Include="..\DiceAndRoll.Adventure.Shared\DiceAndRoll.Adventure.Shared.csproj" />
   </ItemGroup>
 

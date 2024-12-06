@@ -15,6 +15,33 @@ namespace Microsoft.Extensions.Hosting;
 // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
 public static class Extensions
 {
+    public static IHostBuilder AddServiceDefaults(this IHostBuilder builder)
+    {
+        // ConfigureOpenTelemetry:
+        builder.ConfigureConsoleOpenTelemetry();
+
+        // AddDefaultHealthChecks:
+        builder.ConfigureServices(x => x.AddHealthChecks()
+            // Add a default liveness check to ensure app is responsive
+            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"])
+        );
+
+        // AddServiceDiscovery:
+        builder.ConfigureServices(x => x.AddServiceDiscovery());
+
+        // ConfigureHttpClientDefaults:
+        builder.ConfigureServices(x => x.ConfigureHttpClientDefaults(http =>
+        {
+            // Turn on resilience by default
+            http.AddStandardResilienceHandler();
+
+            // Turn on service discovery by default
+            http.AddServiceDiscovery();
+        }));
+
+        return builder;
+    }
+
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.ConfigureOpenTelemetry();
@@ -37,6 +64,38 @@ public static class Extensions
         // {
         //     options.AllowedSchemes = ["https"];
         // });
+
+        return builder;
+    }
+
+    public static IHostBuilder ConfigureConsoleOpenTelemetry(this IHostBuilder builder)
+    {
+        builder.ConfigureLogging(x => x.AddOpenTelemetry(logging =>
+        {
+            logging.IncludeFormattedMessage = true;
+            logging.IncludeScopes = true;
+        }));
+
+        builder.ConfigureServices(x => x.AddOpenTelemetry()
+            .WithMetrics(metrics =>
+            {
+                metrics.AddHttpClientInstrumentation()
+                       .AddRuntimeInstrumentation();
+            })
+            .WithTracing(tracing =>
+            {
+                tracing.AddHttpClientInstrumentation();
+            }));
+
+
+        // TODO: builder.AddOpenTelemetryExporters(); 
+
+        //var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+
+        //if (useOtlpExporter)
+        //{
+        //    builder.Services.AddOpenTelemetry().UseOtlpExporter();
+        //}
 
         return builder;
     }
