@@ -6,7 +6,6 @@ using Microsoft.Extensions.Hosting;
 using Spectre.Console;
 using System.Reflection;
 
-AnsiConsole.Clear();
 AnsiConsole.MarkupLineInterpolated($"[bold yellow]{Constants.LOGO_TEXT_ART}[/]");
 
 AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game || Game Server[/]" + Environment.NewLine);

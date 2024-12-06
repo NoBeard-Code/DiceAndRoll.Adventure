@@ -21,7 +21,6 @@ builder
 
 var host = builder.Build();
 
-AnsiConsole.Clear();
 AnsiConsole.MarkupLineInterpolated($"[bold yellow]{Constants.LOGO_TEXT_ART}[/]");
 
 AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game || Player Console[/]" + Environment.NewLine);
