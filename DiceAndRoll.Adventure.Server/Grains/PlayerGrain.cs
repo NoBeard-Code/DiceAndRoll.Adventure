@@ -5,7 +5,8 @@ using System.Text;
 namespace DiceAndRoll.Adventure.Server.Grains;
 
 internal sealed class PlayerGrain(
-    [PersistentState("player", "game")] IPersistentState<CharacterInfo> state) : Grain, IPlayerGrain
+    [PersistentState("player", Constants.ORLEANS_GRAIN_STORAGE)]
+    IPersistentState<CharacterInfo> state) : Grain, IPlayerGrain
 {
     private const string FIRST_LOCATION = "lighthouse";
 

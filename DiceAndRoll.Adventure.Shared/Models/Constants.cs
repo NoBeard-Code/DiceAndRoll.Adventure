@@ -15,4 +15,6 @@ public static class Constants
      / ___ \ (_| |\ V /  __/ | | | |_| |_| | | |  __/ | |_| | (_| | | | | | |  __/
     /_/   \_\__,_| \_/ \___|_| |_|\__|\__,_|_|  \___|  \____|\__,_|_| |_| |_|\___|
     """;
+
+    public const string ORLEANS_GRAIN_STORAGE = "gameStore";
 }

@@ -1,4 +1,4 @@
-﻿using DiceAndRoll.Adventure.Shared;
+﻿using DiceAndRoll.Adventure.ConsoleApp.Configuration;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,21 +9,7 @@ using System.Text;
 
 var builder = Host.CreateDefaultBuilder(args);
 
-if (AspireUtils.IsAspireConfigured())
-{
-    builder.AddServiceDefaults();
-}
-
-builder
-    .UseOrleansClient(siloBuilder =>
-    {
-        siloBuilder.UseLocalhostClustering();
-    })
-    .ConfigureLogging(logging =>
-    {
-        logging.ClearProviders();
-        logging.AddFilter("Orleans", LogLevel.None);
-    });
+builder.Configure();
 
 var host = builder.Build();
 

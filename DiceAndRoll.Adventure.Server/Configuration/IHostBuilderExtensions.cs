@@ -1,14 +1,15 @@
 ﻿using DiceAndRoll.Adventure.Server.Services;
 using DiceAndRoll.Adventure.Shared;
+using DiceAndRoll.Adventure.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace DiceAndRoll.Adventure.Server.Configuration;
 
-public static class IHostBuilderExtensions
+internal static class IHostBuilderExtensions
 {
-    public static void Configure(this IHostBuilder builder)
+    internal static void Configure(this IHostBuilder builder)
     {
         if (AspireUtils.IsAspireConfigured())
         {
@@ -18,7 +19,7 @@ public static class IHostBuilderExtensions
         builder.UseOrleans(siloBuilder =>
         {
             siloBuilder.UseLocalhostClustering();
-            siloBuilder.AddMemoryGrainStorage("game");
+            siloBuilder.AddMemoryGrainStorage(Constants.ORLEANS_GRAIN_STORAGE);
             siloBuilder.UseDashboard();
         });
 

@@ -5,8 +5,8 @@ using System.Text;
 namespace DiceAndRoll.Adventure.Server.Grains;
 
 internal sealed class LocationGrain(
-    [PersistentState("location", "game")] IPersistentState<LocationInfo> state) 
-    : Grain, ILocationGrain
+    [PersistentState("location", Constants.ORLEANS_GRAIN_STORAGE)] 
+    IPersistentState<LocationInfo> state) : Grain, ILocationGrain
 {
     private readonly Dictionary<string, ILocationGrain> _connections = [];
     private readonly List<PlayerInfo> _players = [];
