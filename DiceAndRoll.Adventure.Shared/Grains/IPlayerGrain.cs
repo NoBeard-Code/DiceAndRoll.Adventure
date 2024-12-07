@@ -6,7 +6,7 @@ public interface IPlayerGrain : IGrainWithGuidKey
 {
     Task SetCharacter(string name, CharacterInfo character);
 
-    Task Appear(string location);
+    internal Task Appear(string location);
 
     Task<string> Look();
 
@@ -16,7 +16,7 @@ public interface IPlayerGrain : IGrainWithGuidKey
 
     Task<string> Kill(PlayerInfo targetPlayer);
 
-    Task<string> Die();
+    internal Task<string> Die();
 
     Task<Dictionary<string, string>> FindDirections();
 

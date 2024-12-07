@@ -47,7 +47,7 @@ public class GameTests
 
         await game.Join(player);
 
-        await player.Die();
+        await game.Leave(player);
 
         Assert.True(await player.AmIDead());
 

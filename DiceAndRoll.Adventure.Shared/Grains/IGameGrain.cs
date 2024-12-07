@@ -4,7 +4,7 @@ public interface IGameGrain : IGrainWithGuidKey
 {
     Task ConfigureAndStart(string campaignFile);
 
-    Task End();
+    internal Task End();
 
     Task Join(IPlayerGrain player, bool randomLocation = false);
 

@@ -2,7 +2,7 @@
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface ILocationGrain : IGrainWithStringKey
+internal interface ILocationGrain : IGrainWithStringKey
 {
     Task<LocationInfo?> GetInfo();
 

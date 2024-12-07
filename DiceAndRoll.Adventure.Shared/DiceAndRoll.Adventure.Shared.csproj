@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.0.1" />
+	  <InternalsVisibleTo Include="DiceAndRoll.Adventure.Server"/>
+	  <InternalsVisibleTo Include="DiceAndRoll.Adventure.UnitTests"/>
   </ItemGroup>
 
 </Project>

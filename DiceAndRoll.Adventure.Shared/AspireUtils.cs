@@ -11,10 +11,6 @@ public static class AspireUtils
         {
             Console.WriteLine("This application is configured with .NET Aspire.");
         }
-        else
-        {
-            Console.WriteLine("This application is not configured with .NET Aspire.");
-        }
 
         return isAspireConfigured;
     }
