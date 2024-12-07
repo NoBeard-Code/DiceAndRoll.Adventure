@@ -1,4 +1,5 @@
-﻿using DiceAndRoll.Adventure.ConsoleApp.Configuration;
+﻿using DiceAndRoll.Adventure.ConsoleApp;
+using DiceAndRoll.Adventure.ConsoleApp.Configuration;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,7 @@ builder.Configure();
 
 var host = builder.Build();
 
-AnsiConsole.MarkupLineInterpolated($"[bold yellow]{Constants.LOGO_TEXT_ART}[/]");
+AnsiConsole.MarkupLineInterpolated($"[bold yellow slowblink]{Constants.LOGO_TEXT_ART}[/]");
 
 AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game || Player Console[/]" + Environment.NewLine);
 AnsiConsole.MarkupLine("[silver]Please await while the console configures...[/]");
@@ -59,6 +60,8 @@ var name = AnsiConsole.Prompt(
 
 var characters = await directory!.GetCharacters();
 
+ConsoleOutput.DisplayCharacters(characters);
+
 var player = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
 
 var prompt = AnsiConsole.Prompt(
@@ -69,7 +72,7 @@ var prompt = AnsiConsole.Prompt(
         .AddChoices(characters.Select(x => x.Title))
         );
 
-AnsiConsole.MarkupLine($"Great [yellow]{name}[/], you will be playing [yellow]{prompt}[/] character.");
+AnsiConsole.MarkupLine($"Great [yellow]{name}[/], you will be playing [yellow]{prompt}[/] character." + Environment.NewLine);
 
 var character = characters.Find(x => x.Title == prompt);
 await player.SetCharacter(name, character!);
