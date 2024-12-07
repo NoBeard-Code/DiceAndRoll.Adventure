@@ -6,7 +6,7 @@ public interface IGameGrain : IGrainWithGuidKey
 
     Task End();
 
-    Task Join(IPlayerGrain player);
+    Task Join(IPlayerGrain player, bool randomLocation = false);
 
     Task Leave(IPlayerGrain player);
 }

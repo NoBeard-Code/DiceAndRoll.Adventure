@@ -43,7 +43,9 @@ public class GameTests
         var name = Guid.NewGuid();
         var player = client.GetGrain<IPlayerGrain>(name);
 
-        await player.JoinGame(name.ToString(), character!);
+        await player.SetCharacter(name.ToString(), character!);
+
+        await game.Join(player);
 
         await player.Die();
 
@@ -84,8 +86,9 @@ public class GameTests
 
             Thread.Sleep(200); // players join every 200+ ms
 
-            await player.JoinGame(name.ToString(), character!);
-            await player.Look();
+            await player.SetCharacter(name.ToString(), character!);
+
+            await game.Join(player, true);
         }
 
         var remainingPlayers = players.Count;

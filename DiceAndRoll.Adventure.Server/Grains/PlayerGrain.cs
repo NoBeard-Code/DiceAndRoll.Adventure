@@ -8,8 +8,6 @@ internal sealed class PlayerGrain(
     [PersistentState("player", Constants.ORLEANS_GRAIN_STORAGE)]
     IPersistentState<CharacterInfo> state) : Grain, IPlayerGrain
 {
-    private const string FIRST_LOCATION = "lighthouse";
-
     private PlayerInfo _self = null!;
     private ILocationGrain? _currentLocation;
     private bool _died = false;
@@ -20,19 +18,21 @@ internal sealed class PlayerGrain(
         return base.OnActivateAsync(cancellationToken);
     }
 
-    public async Task JoinGame(string name, CharacterInfo character)
+    public async Task SetCharacter(string name, CharacterInfo character)
     {
         _self = _self with { Name = name };
         _died = false;
-
-        var firstLocation = GrainFactory.GetGrain<ILocationGrain>(FIRST_LOCATION);
 
         await state.ClearStateAsync();
 
         state.State = character;
         await state.WriteStateAsync();
+    }
 
-        await SetCurrentLocation(firstLocation);
+    public async Task Appear(string location)
+    {
+        var firstLocation = GrainFactory.GetGrain<ILocationGrain>(location);
+        await SetCurrentLocation(firstLocation); 
     }
 
     public async Task<string> Look()

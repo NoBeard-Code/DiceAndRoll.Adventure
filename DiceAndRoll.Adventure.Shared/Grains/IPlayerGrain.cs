@@ -4,7 +4,9 @@ namespace DiceAndRoll.Adventure.Shared.Grains;
 
 public interface IPlayerGrain : IGrainWithGuidKey
 {
-    Task JoinGame(string name, CharacterInfo character);
+    Task SetCharacter(string name, CharacterInfo character);
+
+    Task Appear(string location);
 
     Task<string> Look();
 

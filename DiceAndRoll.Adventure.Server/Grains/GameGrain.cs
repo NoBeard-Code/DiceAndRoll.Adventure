@@ -4,10 +4,12 @@ using DiceAndRoll.Adventure.Shared.Models;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
-internal sealed class GameGrain(ICampaignService campaignService) : Grain, IGameGrain
+internal sealed class GameGrain(ICampaignService campaignService,
+    [PersistentState("game", Constants.ORLEANS_GRAIN_STORAGE)]
+    IPersistentState<GameInfo> state) : Grain, IGameGrain
 {
     private readonly List<IPlayerGrain> _players = [];
-    private readonly List<ILocationGrain> locations = [];
+    private readonly List<LocationInfo> _locations = [];
 
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
@@ -29,6 +31,9 @@ internal sealed class GameGrain(ICampaignService campaignService) : Grain, IGame
 
         var locations = await campaignService.GetLocationsAsync();
 
+        _locations.Clear();
+        _locations.AddRange(locations);
+
         // Initialize the game world using the game data
         foreach (var location in locations)
         {
@@ -48,13 +53,24 @@ internal sealed class GameGrain(ICampaignService campaignService) : Grain, IGame
         return Task.CompletedTask;
     }
 
-    public Task Join(IPlayerGrain player)
+    public async Task Join(IPlayerGrain player, bool randomLocation = false)
     {
-        throw new NotImplementedException();
+        Console.WriteLine($"New player joined: {this.GetGrainId()}, {player.GetGrainId()}");
+
+        // drop player into a random location?
+        var startLocation = randomLocation ? _locations[Random.Shared.Next(0, _locations.Count - 1)] : _locations.First();
+
+        _players.Add(player);
+
+        await player.Appear(startLocation.Name);
     }
 
-    public Task Leave(IPlayerGrain player)
+    public async Task Leave(IPlayerGrain player)
     {
-        throw new NotImplementedException();
+        Console.WriteLine($"Player left: {this.GetGrainId()}, {player.GetGrainId()}");
+
+        _players.Remove(player);
+
+        await player.Die();
     }
 }

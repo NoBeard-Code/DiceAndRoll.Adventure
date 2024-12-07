@@ -22,6 +22,7 @@ bool error = false;
 
 var client = host.Services.GetRequiredService<IClusterClient>();
 IDirectoryGrain? directory = null;
+IGameGrain? game = null;
 
 await AnsiConsole.Status()
     .Spinner(Spinner.Known.Star)
@@ -37,7 +38,7 @@ await AnsiConsole.Status()
             var activeGames = await directory.GetActiveGames();
             if (activeGames == null || activeGames.Count == 0) throw new Exception();
 
-            var game = client.GetGrain<IGameGrain>(activeGames[0]);
+            game = client.GetGrain<IGameGrain>(activeGames[0]);
         }
         catch (Exception)
         {
@@ -71,14 +72,14 @@ var prompt = AnsiConsole.Prompt(
 AnsiConsole.MarkupLine($"Great [yellow]{name}[/], you will be playing [yellow]{prompt}[/] character.");
 
 var character = characters.Find(x => x.Title == prompt);
+await player.SetCharacter(name, character!);
 
-AnsiConsole.Status()
+await AnsiConsole.Status()
     .Spinner(Spinner.Known.Star)
     .SpinnerStyle(Style.Parse("green bold"))
-    .Start("Entering the game...", ctx =>
+    .StartAsync("Entering the game...", async ctx =>
     {
-        player.JoinGame(name, character!);
-        Thread.Sleep(1000);
+        await game!.Join(player);
     });
 
 AnsiConsole.MarkupLine("Let's begin with our story...");
@@ -109,7 +110,6 @@ try
 }
 finally
 {
-    await player.Die();
     AnsiConsole.MarkupLine("[red]Game over![/]");
     await host.StopAsync();
 }
@@ -135,10 +135,16 @@ async Task<string> Run(string command)
             await KillPrompt(),
 
         "quit" =>
-            await player.Die(),
+            await LeaveGame(),
 
         _ => "[fuchsia]I don't understand[/]"
     }; 
+}
+
+async Task<string> LeaveGame()
+{
+    await game!.Leave(player);
+    return string.Empty;
 }
 
 string RemoveUnnecessaryWords(string s)
