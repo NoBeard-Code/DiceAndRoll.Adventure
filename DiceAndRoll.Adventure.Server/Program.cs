@@ -6,7 +6,6 @@ using Microsoft.Extensions.Hosting;
 using Spectre.Console;
 using System.Reflection;
 
-AnsiConsole.Clear();
 AnsiConsole.MarkupLineInterpolated($"[bold yellow]{Constants.LOGO_TEXT_ART}[/]");
 
 AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game || Game Server[/]" + Environment.NewLine);
@@ -18,7 +17,9 @@ await AnsiConsole.Status()
     .StartAsync("Configuring Orleans...", async ctx => {
 
         var builder = Host.CreateDefaultBuilder(args);
+
         builder.Configure();
+
         host = builder.Build();
 
         await host.StartAsync();

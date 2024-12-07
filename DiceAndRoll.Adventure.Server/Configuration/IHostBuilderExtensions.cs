@@ -1,4 +1,5 @@
 ﻿using DiceAndRoll.Adventure.Server.Services;
+using DiceAndRoll.Adventure.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -9,6 +10,11 @@ public static class IHostBuilderExtensions
 {
     public static void Configure(this IHostBuilder builder)
     {
+        if (AspireUtils.IsAspireConfigured())
+        {
+            builder.AddServiceDefaults();
+        }
+
         builder.UseOrleans(siloBuilder =>
         {
             siloBuilder.UseLocalhostClustering();

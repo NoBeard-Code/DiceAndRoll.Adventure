@@ -1,4 +1,5 @@
-﻿using DiceAndRoll.Adventure.Shared.Grains;
+﻿using DiceAndRoll.Adventure.Shared;
+using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,6 +8,11 @@ using Spectre.Console;
 using System.Text;
 
 var builder = Host.CreateDefaultBuilder(args);
+
+if (AspireUtils.IsAspireConfigured())
+{
+    builder.AddServiceDefaults();
+}
 
 builder
     .UseOrleansClient(siloBuilder =>
@@ -21,7 +27,6 @@ builder
 
 var host = builder.Build();
 
-AnsiConsole.Clear();
 AnsiConsole.MarkupLineInterpolated($"[bold yellow]{Constants.LOGO_TEXT_ART}[/]");
 
 AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game || Player Console[/]" + Environment.NewLine);
