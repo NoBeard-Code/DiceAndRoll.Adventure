@@ -10,6 +10,7 @@ internal sealed class PlayerGrain(
 {
     private PlayerInfo _self = null!;
     private ILocationGrain? _currentLocation;
+    private string? _previousLocation;
     private bool _died = false;
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
@@ -64,6 +65,7 @@ internal sealed class PlayerGrain(
             await _currentLocation.Exit(_self);
 
             await SetCurrentLocation(destination);
+            _previousLocation = direction; // for going back
 
             var desc = await destination.Describe(_self);
             if (desc != null)
@@ -85,9 +87,14 @@ internal sealed class PlayerGrain(
         _currentLocation = location;
     }
 
-    public Task<string> GoBack()
+    public async Task<string> GoBack()
     {
-        throw new NotImplementedException();
+        if (_previousLocation is null)
+        {
+            return "[fuchsia]You cannot go back from here.[/]";
+        }
+
+        return await GoTo(_previousLocation);
     }
 
     public async Task<string> Kill(PlayerInfo targetPlayer)

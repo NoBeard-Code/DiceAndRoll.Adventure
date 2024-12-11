@@ -104,7 +104,7 @@ try
     while (response is not "")
     {
         var command = AnsiConsole.Prompt(new TextPrompt<string>("What will you do?")
-            .AddChoices(["look", "go", "kill", "quit"])
+            .AddChoices(["look", "go", "back", "kill", "quit"])
             .DefaultValue("look"));
 
         response = await Run(command);
@@ -133,6 +133,9 @@ async Task<string> Run(string command)
 
         "go" => 
             await GoPrompt(),
+
+        "back" =>
+            await player.GoBack(),
 
         "kill" =>
             await KillPrompt(),

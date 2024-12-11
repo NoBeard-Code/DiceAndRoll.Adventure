@@ -51,6 +51,8 @@ internal sealed class LocationGrain(
     public async Task<string> Describe(PlayerInfo toMe)
     {
         var sb = new StringBuilder();
+        sb.Append($"[fuchsia]{state.State.Title}[/] ");
+        sb.AppendLine($"[olive]({state.State.Terrain})[/]");
         sb.AppendLine($"[purple]{state.State.Description}[/]");
         sb.AppendLine();
 

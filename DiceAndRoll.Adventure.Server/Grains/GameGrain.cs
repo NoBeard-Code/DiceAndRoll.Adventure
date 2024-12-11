@@ -39,6 +39,8 @@ internal sealed class GameGrain(ICampaignService campaignService,
         {
             await AddLocationAsync(location);
         }
+
+        Console.WriteLine($"Game configured and started.");
     }
 
     private async Task<ILocationGrain> AddLocationAsync(LocationInfo location)
@@ -50,6 +52,8 @@ internal sealed class GameGrain(ICampaignService campaignService,
 
     public Task End()
     {
+        Console.WriteLine($"Game ended.");
+
         return Task.CompletedTask;
     }
 
