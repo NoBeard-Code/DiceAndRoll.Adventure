@@ -74,4 +74,36 @@ internal static class ConsoleOutput
             .AddItem("DEF", value, Color.Yellow)
             .WithMaxValue(5);
     }
+
+    internal static void DisplayStats()
+    {
+        var panel = new Panel("ttt")
+        {
+            Header = new PanelHeader("Player stats"),
+            Border = BoxBorder.Rounded,
+            Expand = true
+
+        };
+        AnsiConsole.Write(panel);
+        return;
+
+        var layout = new Layout("Root")
+            .SplitColumns(
+                new Layout("Left"),
+                new Layout("Right")
+                    .SplitRows(
+                        new Layout("Top"),
+                        new Layout("Bottom")));
+
+        // Update the left column
+        layout["Left"].Update(
+            new Panel(
+                Align.Center(
+                    new Markup("Hello [blue]World![/]"),
+                    VerticalAlignment.Middle))
+                .Expand());
+
+        // Render the layout
+        AnsiConsole.Write(layout);
+    }
 }
