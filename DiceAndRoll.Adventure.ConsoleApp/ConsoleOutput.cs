@@ -17,7 +17,7 @@ internal static class ConsoleOutput
 
     //DisplayCharacters(x);
 
-    internal static void DisplayCharacters(List<CharacterInfo> characters)
+    internal static void DisplayCharacters(List<CharacterInfo> characters, bool extendedView = false)
     {
         var table = new Table();
         table.Title("[bold blue underline]List of characters[/]");
@@ -35,23 +35,26 @@ internal static class ConsoleOutput
 
         AnsiConsole.Write(table);
 
-        var table2 = new Table();
-        table2.Title("[bold blue](details)[/]");
-        table2.Border = TableBorder.Ascii;
-
-        table2.AddColumns([new TableColumn("Title"), new TableColumn("Story"),
-        new TableColumn("Armors"), new TableColumn("Weapons"), new TableColumn("Specials"), new TableColumn("Starting Equipment")]);
-
-        foreach (var character in characters)
+        if (extendedView)
         {
-            table2.AddRow(new Markup($"[olive bold]{character.Title}[/]"), new Markup($"[grey]{character.Story}[/]"),
-                new Rows(character.Armors.Select(x => new Text(x))), new Rows(character.Weapons.Select(x => new Text(x))),
-                new Rows(character.Specials.Select(x => new Text(x))),
-                new Rows(new Markup($"[lime bold]{character.Weapon}[/]"), new Markup($"[lime]{character.Armor}[/]"))
-                );
-        }
+            var table2 = new Table();
+            table2.Title("[bold blue](details)[/]");
+            table2.Border = TableBorder.Ascii;
 
-        AnsiConsole.Write(table2);
+            table2.AddColumns([new TableColumn("Title"), new TableColumn("Story"),
+                new TableColumn("Armors"), new TableColumn("Weapons"), new TableColumn("Specials"), new TableColumn("Starting Equipment")]);
+
+            foreach (var character in characters)
+            {
+                table2.AddRow(new Markup($"[olive bold]{character.Title}[/]"), new Markup($"[grey]{character.Story}[/]"),
+                    new Rows(character.Armors.Select(x => new Text(x))), new Rows(character.Weapons.Select(x => new Text(x))),
+                    new Rows(character.Specials.Select(x => new Text(x))),
+                    new Rows(new Markup($"[lime bold]{character.Weapon}[/]"), new Markup($"[lime]{character.Armor}[/]"))
+                    );
+            }
+
+            AnsiConsole.Write(table2);
+        }
     }
 
     private static BarChart DisplayHealthBar(double value)
