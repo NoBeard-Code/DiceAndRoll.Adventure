@@ -4,13 +4,17 @@ using DiceAndRoll.Adventure.Shared.Models;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
+internal class GameState
+{
+    public List<IPlayerGrain> Players { get; set; } = [];
+
+    public List<ILocationGrain> Locations { get; set; } = [];
+}
+
 internal sealed class GameGrain(ICampaignService campaignService,
     [PersistentState("game", Constants.ORLEANS_GRAIN_STORAGE)]
-    IPersistentState<GameInfo> state) : Grain, IGameGrain
+    IPersistentState<GameState> state) : Grain, IGameGrain
 {
-    private readonly List<IPlayerGrain> _players = [];
-    private readonly List<LocationInfo> _locations = [];
-
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
         var directory = GrainFactory.GetGrain<IDirectoryGrain>(Guid.Empty);
@@ -31,23 +35,22 @@ internal sealed class GameGrain(ICampaignService campaignService,
 
         var locations = await campaignService.GetLocationsAsync();
 
-        _locations.Clear();
-        _locations.AddRange(locations);
+        if (state.RecordExists)
+            return;
+
+        state.State = new GameState();
 
         // Initialize the game world using the game data
         foreach (var location in locations)
         {
-            await AddLocationAsync(location);
+            var grain = GrainFactory.GetGrain<ILocationGrain>(location.Name);
+            await grain.Configure(location);
+            state.State.Locations.Add(grain);
         }
 
-        Console.WriteLine($"Game configured and started.");
-    }
+        await state.WriteStateAsync();
 
-    private async Task<ILocationGrain> AddLocationAsync(LocationInfo location)
-    {
-        var grain = GrainFactory.GetGrain<ILocationGrain>(location.Name);
-        await grain.Configure(location);
-        return grain;
+        Console.WriteLine($"Game configured and started.");
     }
 
     public Task End()
@@ -62,18 +65,24 @@ internal sealed class GameGrain(ICampaignService campaignService,
         Console.WriteLine($"New player joined: {this.GetGrainId()}, {player.GetGrainId()}");
 
         // drop player into a random location?
-        var startLocation = randomLocation ? _locations[Random.Shared.Next(0, _locations.Count - 1)] : _locations.First();
+        var locations = state.State.Locations;
 
-        _players.Add(player);
+        var startLocation = randomLocation ? locations[Random.Shared.Next(0, locations.Count - 1)] : locations.First();
 
-        await player.Appear(startLocation.Name);
+        state.State.Players.Add(player);
+
+        await state.WriteStateAsync();
+
+        await player.Appear(startLocation.GetPrimaryKeyString());
     }
 
     public async Task Leave(IPlayerGrain player)
     {
         Console.WriteLine($"Player left: {this.GetGrainId()}, {player.GetGrainId()}");
 
-        _players.Remove(player);
+        state.State.Players.Remove(player);
+
+        await state.WriteStateAsync();
 
         await player.Die();
     }

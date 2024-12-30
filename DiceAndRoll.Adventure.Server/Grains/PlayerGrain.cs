@@ -4,70 +4,88 @@ using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
+internal class PlayerState(string Name)
+{
+    public string Name { get; set; } = Name;
+
+    public CharacterInfo? Info { get; set; }
+
+    public ILocationGrain? CurrentLocation { get; set; }
+
+    public string? PreviousLocation { get; set; }
+
+    public bool Died { get; set; }
+}
+
 internal sealed class PlayerGrain(
     [PersistentState("player", Constants.ORLEANS_GRAIN_STORAGE)]
-    IPersistentState<CharacterInfo> state) : Grain, IPlayerGrain
+    IPersistentState<PlayerState> state) : Grain, IPlayerGrain
 {
-    private PlayerInfo _self = null!;
-    private ILocationGrain? _currentLocation;
-    private string? _previousLocation;
-    private bool _died = false;
-
-    public override Task OnActivateAsync(CancellationToken cancellationToken)
+    public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        _self = new PlayerInfo(this.GetPrimaryKey(), "nobody");
-        return base.OnActivateAsync(cancellationToken);
+        state.State = new PlayerState("nobody");
+
+        await state.WriteStateAsync();
+
+        await base.OnActivateAsync(cancellationToken);
     }
 
     public async Task SetCharacter(string name, CharacterInfo character)
     {
-        _self = _self with { Name = name };
-        _died = false;
+        if (state.RecordExists)
+        {
+            await state.ClearStateAsync();
+        }
 
-        await state.ClearStateAsync();
+        state.State.Name = name;
+        state.State.Info = character;
+        state.State.Died = false;
 
-        state.State = character;
         await state.WriteStateAsync();
     }
 
     public async Task Appear(string location)
     {
         var firstLocation = GrainFactory.GetGrain<ILocationGrain>(location);
-        await SetCurrentLocation(firstLocation); 
+        await SetLocations(firstLocation); 
+    }
+
+    private PlayerInfo GetPlayerInfo()
+    {
+        return new PlayerInfo(this.GetPrimaryKey(), state.State.Name);
     }
 
     public async Task<string> Look()
     {
-        if (_currentLocation is null)
+        if (state.State.CurrentLocation is null)
         {
             return "[grey]You are in the void. Nobody returns from here, but ghosts![/]";
         } 
         else
         {
-            return await _currentLocation.Describe(_self);
+            return await state.State.CurrentLocation.Describe(GetPlayerInfo());
         }
     }
 
     public async Task<string> GoTo(string direction)
     {
         ILocationGrain? destination = null;
-        if (_currentLocation is not null)
+        if (state.State.CurrentLocation is not null)
         {
-            destination = await _currentLocation.ExitTo(direction);
+            destination = await state.State.CurrentLocation.ExitTo(direction);
         }
 
         var description = new StringBuilder();
 
-        if (_currentLocation is not null && destination is not null)
+        if (state.State.CurrentLocation is not null && destination is not null)
         {
             description.AppendLine("Allright, let's go there!");
 
-            await _currentLocation.Exit(_self);
+            await state.State.CurrentLocation.Exit(GetPlayerInfo());
 
-            await SetCurrentLocation(destination);
-            _previousLocation = direction; // for going back
+            await SetLocations(destination, direction);
 
-            var desc = await destination.Describe(_self);
+            var desc = await destination.Describe(GetPlayerInfo());
             if (desc != null)
             {
                 description.AppendLine(desc);
@@ -81,26 +99,32 @@ internal sealed class PlayerGrain(
         return description.ToString();
     }
 
-    private async Task SetCurrentLocation(ILocationGrain location)
+    private async Task SetLocations(ILocationGrain location, string? previous = null)
     {
-        await location.Enter(_self);
-        _currentLocation = location;
+        await location.Enter(GetPlayerInfo());
+
+        state.State.CurrentLocation = location;
+        state.State.PreviousLocation = previous; // for going back
+
+        await state.WriteStateAsync();
     }
 
     public async Task<string> GoBack()
     {
-        if (_previousLocation is null)
+        if (state.State.PreviousLocation is null)
         {
             return "[fuchsia]You cannot go back from here.[/]";
         }
 
-        return await GoTo(_previousLocation);
+        return await GoTo(state.State.PreviousLocation);
     }
 
     public async Task<string> Kill(PlayerInfo targetPlayer)
     {
         var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key);
+
         await target.Die();
+
         return $"{targetPlayer.Name} is now dead.";
     }
 
@@ -109,22 +133,24 @@ internal sealed class PlayerGrain(
         // TODO: drop all belongings
 
         // exit the room and the game
-        if (_currentLocation != null)
+        if (state.State.CurrentLocation != null)
         {
-            await _currentLocation.Exit(_self);
-            _currentLocation = null;
+            await state.State.CurrentLocation.Exit(GetPlayerInfo());
+            state.State.CurrentLocation = null;
         }
 
-        _died = true;
+        state.State.Died = true;
+
+        await state.WriteStateAsync();
 
         return string.Empty;
     }
 
-    public async Task<Dictionary<string, string>> FindDirections()
+    public async Task<Dictionary<string, string>?> FindDirections()
     {
-        if (_currentLocation is null) return null;
+        if (state.State.CurrentLocation is null) return null;
 
-        var connections = await _currentLocation.GetConnections();
+        var connections = await state.State.CurrentLocation.GetConnections();
 
         var result = new Dictionary<string, string>();  
 
@@ -140,17 +166,17 @@ internal sealed class PlayerGrain(
         return result;
     }
 
-    public async Task<List<PlayerInfo>> FindOthers()
+    public async Task<List<PlayerInfo>?> FindOthers()
     {
-        if (_currentLocation is null) return null;
+        if (state.State.CurrentLocation is null) return null;
 
-        var players = await _currentLocation.GetPlayers();
+        var players = await state.State.CurrentLocation.GetPlayers();
 
-        return players.Where(x => x.Key != _self.Key).ToList();
+        return players.Where(x => x.Key != this.GetPrimaryKey()).ToList();
     }
 
     public Task<bool> AmIDead()
     {
-        return Task.FromResult(_died);
+        return Task.FromResult(state.State.Died);
     }
 }

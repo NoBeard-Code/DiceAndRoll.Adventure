@@ -4,59 +4,73 @@ using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
+internal class LocationState(LocationInfo Info)
+{
+    public LocationInfo Info { get; set; } = Info;
+
+    public Dictionary<string, ILocationGrain> Connections { get; set; } = [];
+
+    public List<PlayerInfo> Players { get; set; } = [];
+
+    public IEncounterGrain? Encounter { get; set; }
+
+    public List<MonsterInfo> Monsters { get; set; } = [];
+}
+
 internal sealed class LocationGrain(
     [PersistentState("location", Constants.ORLEANS_GRAIN_STORAGE)] 
-    IPersistentState<LocationInfo> state) : Grain, ILocationGrain
+    IPersistentState<LocationState> state) : Grain, ILocationGrain
 {
-    private readonly Dictionary<string, ILocationGrain> _connections = [];
-    private readonly List<PlayerInfo> _players = [];
-
     public async Task Configure(LocationInfo info)
     {
         if (state.RecordExists) 
             return; 
 
-        state.State = info;
-        await state.WriteStateAsync();
+        state.State = new LocationState(info);
 
         foreach (var connection in info.ConnectsTo)
         {
             var grain = GrainFactory.GetGrain<ILocationGrain>(connection);
             if (grain != null)
             {
-                _connections.Add(connection, grain);               
+                state.State.Connections.Add(connection, grain);               
             }
         }
+
+        await state.WriteStateAsync();
     }
 
     public Task<LocationInfo?> GetInfo()
     {
-        return Task.FromResult((state.RecordExists) ? state.State : null);
+        return Task.FromResult((state.RecordExists) ? state.State.Info : null);
     }
 
-    public Task Enter(PlayerInfo player)
+    public async Task Enter(PlayerInfo player)
     {
-        _players.RemoveAll(x => x.Key == player.Key);
-        _players.Add(player);
+        state.State.Players.RemoveAll(x => x.Key == player.Key);
+        state.State.Players.Add(player);
 
-        return Task.CompletedTask;
+        await state.WriteStateAsync();
     }
 
-    public Task Exit(PlayerInfo player)
+    public async Task Exit(PlayerInfo player)
     {
-        _players.RemoveAll(x => x.Key == player.Key);
-        return Task.CompletedTask;
+        state.State.Players.RemoveAll(x => x.Key == player.Key);
+
+        await state.WriteStateAsync();
     }
 
     public async Task<string> Describe(PlayerInfo toMe)
     {
         var sb = new StringBuilder();
-        sb.Append($"[fuchsia]{state.State.Title}[/] ");
-        sb.AppendLine($"[olive]({state.State.Terrain})[/]");
-        sb.AppendLine($"[purple]{state.State.Description}[/]");
+        var info = state.State.Info;
+
+        sb.Append($"[fuchsia]{info.Title}[/] ");
+        sb.AppendLine($"[olive]({info.Terrain})[/]");
+        sb.AppendLine($"[purple]{info.Description}[/]");
         sb.AppendLine();
 
-        var others = _players.Where(x => x.Key != toMe.Key); 
+        var others = state.State.Players.Where(x => x.Key != toMe.Key); 
         if (others.Any())
         {
             sb.AppendLine("[maroon]Beware! These guys are in the room with you:[/]");
@@ -68,12 +82,12 @@ internal sealed class LocationGrain(
         }
 
         sb.AppendLine("[grey]You can go in the following directions:[/]");
-        foreach (var location in _connections.Values)
+        foreach (var location in state.State.Connections.Values)
         {
-            var info = await location.GetInfo();
-            if (info != null)
+            var locationInfo = await location.GetInfo();
+            if (locationInfo != null)
             {
-                sb.Append("  ").AppendLine($"[silver]{info.Title}[/]");
+                sb.Append("  ").AppendLine($"[silver]{locationInfo.Title}[/]");
             }
         }
 
@@ -83,17 +97,17 @@ internal sealed class LocationGrain(
     public Task<ILocationGrain?> ExitTo(string destination)
     {
         return Task.FromResult(
-            _connections.ContainsKey(destination) ? _connections[destination] : null
+            state.State.Connections.ContainsKey(destination) ? state.State.Connections[destination] : null
         );
     }
 
     public Task<Dictionary<string, ILocationGrain>> GetConnections()
     {
-        return Task.FromResult(_connections);
+        return Task.FromResult(state.State.Connections);
     }
 
     public Task<List<PlayerInfo>> GetPlayers()
     {
-        return Task.FromResult(_players); 
+        return Task.FromResult(state.State.Players); 
     }
 }

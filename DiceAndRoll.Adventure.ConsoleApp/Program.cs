@@ -39,6 +39,7 @@ await AnsiConsole.Status()
             var activeGames = await directory.GetActiveGames();
             if (activeGames == null || activeGames.Count == 0) throw new Exception();
 
+            ctx.Status("Fetching first game from list of active games...");
             game = client.GetGrain<IGameGrain>(activeGames[0]);
         }
         catch (Exception)
@@ -53,6 +54,7 @@ if (error)
     return;
 }
 
+AnsiConsole.MarkupLine($"[olive]Loading game completed for game: {game.GetPrimaryKey()}.[/]");
 AnsiConsole.MarkupLine($"[green]Game successfully loaded.[/]");
 
 var name = AnsiConsole.Prompt(

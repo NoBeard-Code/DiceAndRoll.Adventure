@@ -18,9 +18,9 @@ public interface IPlayerGrain : IGrainWithGuidKey
 
     internal Task<string> Die();
 
-    Task<Dictionary<string, string>> FindDirections();
+    Task<Dictionary<string, string>?> FindDirections();
 
-    Task<List<PlayerInfo>> FindOthers();
+    Task<List<PlayerInfo>?> FindOthers();
 
     Task<bool> AmIDead();
 }
