@@ -21,7 +21,7 @@ internal sealed class LocationGrain(
     [PersistentState("location", Constants.ORLEANS_GRAIN_STORAGE)] 
     IPersistentState<LocationState> state) : Grain, ILocationGrain
 {
-    public async Task Configure(LocationInfo info)
+    public async Task Configure(LocationInfo info, List<MonsterInfo> monsters)
     {
         if (state.RecordExists) 
             return; 
@@ -34,6 +34,18 @@ internal sealed class LocationGrain(
             if (grain != null)
             {
                 state.State.Connections.Add(connection, grain);               
+            }
+        }
+
+        if (info.Enemies != null)
+        {
+            foreach (var enemy in info.Enemies)
+            {
+                var monster = monsters.FirstOrDefault(x => x.Name == enemy);
+                if (monster != null)
+                {
+                    state.State.Monsters.Add(monster);
+                }
             }
         }
 
@@ -77,6 +89,21 @@ internal sealed class LocationGrain(
             foreach (var other in others)
             {
                 sb.Append("  ").AppendLine($"[olive]{other.Name}[/]");
+            }
+            sb.AppendLine();
+        }
+
+        if (state.State.Encounter != null)
+        {
+            sb.AppendLine("[red]The combat is underway![/]");
+            sb.AppendLine();
+        } 
+        else if (state.State.Monsters.Count != 0)
+        {
+            sb.AppendLine("[red]You see the following monsters:[/]");
+            foreach (var monster in state.State.Monsters)
+            {
+                sb.Append("  ").AppendLine($"[olive]{monster.Title}[/]");
             }
             sb.AppendLine();
         }

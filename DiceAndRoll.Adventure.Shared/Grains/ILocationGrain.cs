@@ -6,7 +6,7 @@ internal interface ILocationGrain : IGrainWithStringKey
 {
     Task<LocationInfo?> GetInfo();
 
-    Task Configure(LocationInfo data);
+    Task Configure(LocationInfo data, List<MonsterInfo> monsters);
 
     Task Enter(PlayerInfo player);
 

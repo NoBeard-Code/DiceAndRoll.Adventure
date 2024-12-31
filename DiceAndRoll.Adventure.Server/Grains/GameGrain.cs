@@ -11,7 +11,8 @@ internal class GameState
     public List<ILocationGrain> Locations { get; set; } = [];
 }
 
-internal sealed class GameGrain(ICampaignService campaignService,
+internal sealed class GameGrain(
+    ICampaignService campaignService, IMonsterService monsterService,
     [PersistentState("game", Constants.ORLEANS_GRAIN_STORAGE)]
     IPersistentState<GameState> state) : Grain, IGameGrain
 {
@@ -31,9 +32,10 @@ internal sealed class GameGrain(ICampaignService campaignService,
 
     public async Task ConfigureAndStart(string campaignFile)
     {
-        var campaign = await campaignService.LoadAsync(campaignFile);
+        await campaignService.LoadAsync(campaignFile);
 
         var locations = await campaignService.GetLocationsAsync();
+        var monsters = await monsterService.GetMonstersAsync();
 
         if (state.RecordExists)
             return;
@@ -44,7 +46,7 @@ internal sealed class GameGrain(ICampaignService campaignService,
         foreach (var location in locations)
         {
             var grain = GrainFactory.GetGrain<ILocationGrain>(location.Name);
-            await grain.Configure(location);
+            await grain.Configure(location, monsters);
             state.State.Locations.Add(grain);
         }
 
