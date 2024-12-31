@@ -192,20 +192,6 @@ internal sealed class PlayerGrain(
         return await state.State.CurrentLocation.GetMonsters(true);
     }
 
-    public Task<BattleStats> GetStats()
-    {
-        return Task.FromResult(state.State.Stats);
-    }
-
-    public async Task<string> Kill(PlayerInfo targetPlayer)
-    {
-        var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key);
-
-        await target.Die();
-
-        return $"{targetPlayer.Name} is now dead.";
-    }
-
     public async Task<string> Die()
     {
         // TODO: drop all belongings
@@ -257,4 +243,36 @@ internal sealed class PlayerGrain(
     {
         return Task.FromResult(state.State.Died);
     }
+
+    #region Beligerent members 
+
+    public Task<BattleStats> GetStats()
+    {
+        return Task.FromResult(state.State.Stats);
+    }
+
+    public Task<bool> TakeHit(byte damage)
+    {
+        throw new NotImplementedException();
+    }
+
+    //public async Task<string> Kill(PlayerInfo targetPlayer)
+    //{
+    //    var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key);
+
+    //    await target.Die();
+
+    //    return $"{targetPlayer.Name} is now dead.";
+    //}
+
+    public async Task Kill()
+    {
+        AnsiConsole.MarkupLine("[maroon]Player {0} has been killed.[/]", state.State.Name);
+
+        await Die();
+
+        DeactivateOnIdle();
+    }
+
+    #endregion
 }

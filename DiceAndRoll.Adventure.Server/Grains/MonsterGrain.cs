@@ -42,6 +42,8 @@ internal sealed class MonsterGrain(
         return Task.FromResult(state.State.Info);
     }
 
+    #region Beligerent members 
+
     public Task<BattleStats> GetStats()
     {
         return Task.FromResult(state.State.Stats);
@@ -66,11 +68,6 @@ internal sealed class MonsterGrain(
         return state.State.Stats.Health == 0;
     }
 
-    public Task AttackPlayer(byte damage)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task Kill()
     {
         AnsiConsole.MarkupLine("[maroon]Monster {0} has been killed.[/]", this.GetKeyExtension());
@@ -79,4 +76,6 @@ internal sealed class MonsterGrain(
 
         return Task.CompletedTask;
     }
+
+    #endregion
 }

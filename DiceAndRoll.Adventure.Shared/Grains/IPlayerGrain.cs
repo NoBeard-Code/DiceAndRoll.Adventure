@@ -2,7 +2,7 @@
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IPlayerGrain : IGrainWithGuidKey
+public interface IPlayerGrain : IGrainWithGuidKey, IBeligerent
 {
     Task SetCharacter(string name, CharacterInfo character);
 
@@ -22,10 +22,6 @@ public interface IPlayerGrain : IGrainWithGuidKey
 
     Task<List<MonsterIdentification>?> GetMonstersInEncounter();
 
-    internal Task<BattleStats> GetStats();
-
-    Task<string> Kill(PlayerInfo targetPlayer);
-
     internal Task<string> Die();
 
     Task<Dictionary<string, string>?> FindDirections();
@@ -33,4 +29,6 @@ public interface IPlayerGrain : IGrainWithGuidKey
     Task<List<PlayerInfo>?> FindOthers();
 
     Task<bool> AmIDead();
+
+    // Task<string> Kill(PlayerInfo targetPlayer);
 }

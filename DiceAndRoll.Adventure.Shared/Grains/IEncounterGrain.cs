@@ -4,7 +4,7 @@ namespace DiceAndRoll.Adventure.Shared.Grains;
 
 public interface IEncounterGrain : IGrainWithGuidKey
 {
-    internal Task<string> StartBattle(List<MonsterInfo> monsters, IPlayerGrain initiator);
+    internal Task StartBattle(List<MonsterInfo> monsters, IPlayerGrain initiator);
 
     internal Task EndBattle();
 

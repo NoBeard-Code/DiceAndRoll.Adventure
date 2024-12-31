@@ -22,7 +22,7 @@ internal sealed class EncounterGrain(
     [PersistentState("encounter", Constants.ORLEANS_GRAIN_STORAGE)]
     IPersistentState<EncounterState> state) : Grain, IEncounterGrain
 {
-    public async Task<string> StartBattle(List<MonsterInfo> monsters, IPlayerGrain initiator)
+    public async Task StartBattle(List<MonsterInfo> monsters, IPlayerGrain initiator)
     {
         // store beligerents into state, construct initiative row, reset round and turn
 
@@ -44,20 +44,59 @@ internal sealed class EncounterGrain(
         state.State.Round = 1;
         state.State.InitiativeRow = beligerents.Shuffle();
 
+        AnsiConsole.MarkupLine($"[fuchsia]Battle has begun. Round {state.State.Round}:[/]");
+
         NextTurn();
 
         await state.WriteStateAsync();
-
-        return "Battle has begun.";
     }
 
-    private void NextTurn()
+    private async void NextTurn()
     {
         state.State.Turn++;
+
         if (state.State.Turn > state.State.InitiativeRow.Count)
         {
             state.State.Turn = 1;
             state.State.Round++;
+            AnsiConsole.MarkupLine($"[fuchsia]Round {state.State.Round} started:[/]");
+        }
+
+        AnsiConsole.MarkupLine($"[purple]Turn {state.State.Turn}:[/]");
+
+        // find the beligerent and execute attack if it's monster's turn
+
+        var candidate = state.State.InitiativeRow[state.State.Turn - 1];
+
+        var foundPlayer = state.State.Players.Find(x => x.GetPrimaryKey() == candidate);
+        if (foundPlayer != null)
+        {
+            return;
+        }
+        else
+        {
+            var foundMonster = state.State.Monsters.Find(x => x.GetPrimaryKey() == candidate);
+            if (foundMonster != null)
+            {
+                var randomPlayer = state.State.Players[Random.Shared.Next(0, state.State.Players.Count - 1)];
+
+                var isDefenderKilled = await ExecuteAttack(
+                    await foundMonster.GetStats(),
+                    await randomPlayer.GetStats(), randomPlayer);
+
+                if (isDefenderKilled)
+                {
+                    if (randomPlayer is IMonsterGrain)
+                    {
+                        // state.State.Monsters.Remove(randomPlayer);
+                    }
+                    else if (randomPlayer is IPlayerGrain)
+                    {
+                        state.State.Players.Remove(randomPlayer);
+                    }
+                    state.State.InitiativeRow.Remove(randomPlayer.GetPrimaryKey());
+                }
+            }
         }
     }
 
@@ -136,5 +175,27 @@ internal sealed class EncounterGrain(
                 state.State.Monsters.Remove(monster);
             }
         }
+    }
+
+    private static async Task<bool> ExecuteAttack(BattleStats attackerStats, BattleStats defenderStats, IBeligerent defender)
+    {
+        // get the attacker stats for the attack, get the target stats for the defense, calculate damage, apply it
+
+        AnsiConsole.MarkupLine($"[yellow]Attacker: {attackerStats}[/]");
+        AnsiConsole.MarkupLine($"[yellow]Defender: {defenderStats}[/]");
+
+        var damage = attackerStats.Attack - defenderStats.Defense;
+
+        if (damage > 0)
+        {
+            var isDead = await defender.TakeHit((byte)damage);
+            if (isDead)
+            {
+                await defender.Kill();
+                return true; // defender is dead
+            }
+        }
+
+        return false; // defender is still alive
     }
 }

@@ -2,17 +2,9 @@
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-internal interface IMonsterGrain : IGrainWithGuidCompoundKey
+internal interface IMonsterGrain : IGrainWithGuidCompoundKey, IBeligerent
 {
     Task Configure(MonsterInfo info);
 
     Task<MonsterInfo> GetInfo();
-
-    Task<BattleStats> GetStats();
-
-    Task<bool> TakeHit(byte damage);
-
-    Task AttackPlayer(byte damage);
-
-    Task Kill();
 }
