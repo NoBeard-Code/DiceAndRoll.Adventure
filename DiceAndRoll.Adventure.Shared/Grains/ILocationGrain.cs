@@ -19,4 +19,12 @@ internal interface ILocationGrain : IGrainWithStringKey
     Task<Dictionary<string, ILocationGrain>> GetConnections();
 
     Task<List<PlayerInfo>> GetPlayers();
+
+    Task<List<MonsterIdentification>?> GetMonsters(bool inEncounter);
+
+    Task EngageInEncounter(IPlayerGrain player);
+
+    Task LeaveEncounter(IPlayerGrain player);
+
+    Task<IEncounterGrain?> GetEncounterReference();
 }

@@ -1,5 +1,6 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using Spectre.Console;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
@@ -14,7 +15,9 @@ internal class PlayerState(string Name)
 
     public string? PreviousLocation { get; set; }
 
-    public bool Died { get; set; }
+    public BattleStats Stats { get; set; } = new();
+
+    public bool Died { get; set; }   
 }
 
 internal sealed class PlayerGrain(
@@ -117,6 +120,79 @@ internal sealed class PlayerGrain(
         }
 
         return await GoTo(state.State.PreviousLocation);
+    }
+
+    public async Task<string> Fight()
+    {
+        if (state.State.CurrentLocation is null)
+        {
+            AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
+            return "[fuchsia]You are not in a combat situation.[/]";
+        }
+
+        await state.State.CurrentLocation.EngageInEncounter(this);
+
+        // reset battle stats
+        state.State.Stats = new BattleStats()
+        {
+            Health = state.State.Info!.Health,
+            Attack = state.State.Info!.Attack,
+            Defense = state.State.Info!.Defense
+        };
+
+        await state.WriteStateAsync();
+
+        AnsiConsole.MarkupLine("[red bold rapidblink]You have been engaged in combat![/]");
+        return "[red bold rapidblink]You have been engaged in combat![/]";
+    }
+
+    public async Task<string> Attack(Guid targetId)
+    {
+        if (state.State.CurrentLocation is null)
+        {
+            AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
+            return "[fuchsia]You are not in a combat situation.[/]";
+        }
+
+        var encounter = await state.State.CurrentLocation.GetEncounterReference();
+        if (encounter is null)
+        {
+            AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
+            return "[fuchsia]You are not in a combat situation.[/]";
+        }
+
+        await encounter.AttackMonster(this, targetId);
+
+        return string.Empty;
+    }
+
+    public async Task<string> Flee()
+    {
+        if (state.State.CurrentLocation is null)
+        {
+            AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
+            return "[fuchsia]You are not in a combat situation.[/]";
+        }
+
+        await state.State.CurrentLocation.LeaveEncounter(this);
+
+        AnsiConsole.MarkupLine("[green]You have fled from combat![/]");
+        return "[teal]You have fled from combat![/]";
+    }
+
+    public async Task<List<MonsterIdentification>?> GetMonstersInEncounter()
+    {
+        if (state.State.CurrentLocation is null)
+        {
+            return null;
+        }
+
+        return await state.State.CurrentLocation.GetMonsters(true);
+    }
+
+    public Task<BattleStats> GetStats()
+    {
+        return Task.FromResult(state.State.Stats);
     }
 
     public async Task<string> Kill(PlayerInfo targetPlayer)

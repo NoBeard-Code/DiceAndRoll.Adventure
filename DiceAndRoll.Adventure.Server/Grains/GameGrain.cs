@@ -1,6 +1,7 @@
 ﻿using DiceAndRoll.Adventure.Server.Services;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using Spectre.Console;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
@@ -64,7 +65,7 @@ internal sealed class GameGrain(
 
     public async Task Join(IPlayerGrain player, bool randomLocation = false)
     {
-        Console.WriteLine($"New player joined: {this.GetGrainId()}, {player.GetGrainId()}");
+        AnsiConsole.MarkupLine($"New player joined: {this.GetGrainId()}, {player.GetGrainId()}");
 
         // drop player into a random location?
         var locations = state.State.Locations;
@@ -80,7 +81,7 @@ internal sealed class GameGrain(
 
     public async Task Leave(IPlayerGrain player)
     {
-        Console.WriteLine($"Player left: {this.GetGrainId()}, {player.GetGrainId()}");
+        AnsiConsole.MarkupLine($"Player left: {this.GetGrainId()}, {player.GetGrainId()}");
 
         state.State.Players.Remove(player);
 

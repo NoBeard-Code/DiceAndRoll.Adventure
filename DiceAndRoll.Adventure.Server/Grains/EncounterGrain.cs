@@ -1,13 +1,135 @@
-﻿using DiceAndRoll.Adventure.Shared.Grains;
+﻿using DiceAndRoll.Adventure.Server.Configuration;
+using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using Spectre.Console;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
 internal class EncounterState
 {
-    public List<MonsterInfo> Monsters { get; set; } = [];
+    public List<IPlayerGrain> Players { get; set; } = [];
+
+    public List<IMonsterGrain> Monsters { get; set; } = [];
+
+    public byte Round { get; set; }
+
+    public byte Turn { get; set; }
+
+    public List<Guid> InitiativeRow { get; set; } = [];
 }
 
-internal sealed class EncounterGrain : IEncounterGrain
+internal sealed class EncounterGrain(
+    [PersistentState("encounter", Constants.ORLEANS_GRAIN_STORAGE)]
+    IPersistentState<EncounterState> state) : Grain, IEncounterGrain
 {
+    public async Task<string> StartBattle(List<MonsterInfo> monsters, IPlayerGrain initiator)
+    {
+        // store beligerents into state, construct initiative row, reset round and turn
+
+        List<Guid> beligerents = [initiator.GetPrimaryKey()];
+
+        List<string> monsterNames = [];
+        foreach (var monster in monsters)
+        {
+            var names = monsterNames.Count(x => x == monster.Title); // ensure unique names
+            monsterNames.Add(monster.Title);    
+
+            var grain = GrainFactory.GetGrain<IMonsterGrain>(Guid.NewGuid(), $"{monster.Title} {names + 1}");
+            await grain.Configure(monster);
+            state.State.Monsters.Add(grain);
+            beligerents.Add(grain.GetPrimaryKey());
+        }
+
+        state.State.Players = [initiator];
+        state.State.Round = 1;
+        state.State.InitiativeRow = beligerents.Shuffle();
+
+        NextTurn();
+
+        await state.WriteStateAsync();
+
+        return "Battle has begun.";
+    }
+
+    private void NextTurn()
+    {
+        state.State.Turn++;
+        if (state.State.Turn > state.State.InitiativeRow.Count)
+        {
+            state.State.Turn = 1;
+            state.State.Round++;
+        }
+    }
+
+    public Task EndBattle()
+    {
+        AnsiConsole.MarkupLine("[red]Battle has ended.[/]");
+
+        // Orleans does not automatically remove or deactivate referenced grains when you deactivate a base grain.
+        // Each grain's lifecycle is managed independently, so all monster grain should be manually deactivated here.
+
+        foreach (var monster in state.State.Monsters)
+        {
+            monster.Kill();
+        }
+
+        DeactivateOnIdle(); // deactivate the grain when it is not used
+
+        return Task.CompletedTask;
+    }
+
+    public Task<string> AddPlayer(IPlayerGrain player)
+    {
+        // add player to list of players, add it to the initiative row at the end
+
+        state.State.Players.Add(player);
+
+        state.State.InitiativeRow.Add(player.GetPrimaryKey());
+
+        return Task.FromResult("Player has joined the fight.");
+    }
+
+    public async Task<bool> RemovePlayer(IPlayerGrain player)
+    {
+        // if there is no more players, end the battle
+        if (state.State.Players.Count <= 1)
+        {
+            await EndBattle();
+            return true; // battle ended
+        }
+
+        // if there is still some players, remove player from list of players, remove it from the initiative row
+        state.State.Players.Remove(player);
+        state.State.InitiativeRow.Remove(player.GetPrimaryKey());
+
+        return false; // battle continues
+    }
+
+    public Task<List<MonsterIdentification>> GetMonsters()
+    {
+        return Task.FromResult(state.State.Monsters
+            .Select(x => new MonsterIdentification(x.GetPrimaryKey(), x.GetKeyExtension())).ToList());            
+    }
+
+    public async Task AttackMonster(IPlayerGrain attacker, Guid targetId)
+    {
+        // get the attacker stats for the attack, get the target stats for the defense, calculate damage, apply it
+
+        var attackerStats = await attacker.GetStats();
+
+        var monster = state.State.Monsters.First(x => x.GetPrimaryKey() == targetId); 
+        var targetStats = await monster.GetStats();
+
+        var damage = attackerStats.Attack - targetStats.Defense;
+
+        if (damage > 0)
+        {
+            var isDead = await monster.TakeHit((byte)damage);
+            if (isDead)
+            {
+                await monster.Kill();
+                state.State.Monsters.Remove(monster);
+            }
+        }
+    }
 }
