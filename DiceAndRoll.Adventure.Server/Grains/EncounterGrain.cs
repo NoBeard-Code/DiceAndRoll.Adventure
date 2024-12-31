@@ -94,6 +94,8 @@ internal sealed class EncounterGrain(
         // if there is no more players, end the battle
         if (state.State.Players.Count <= 1)
         {
+            AnsiConsole.MarkupLine("[maroon bold]Encounter has been cancelled, the monsters will reset their state.[/]");
+
             await EndBattle();
             return true; // battle ended
         }
@@ -111,16 +113,19 @@ internal sealed class EncounterGrain(
             .Select(x => new MonsterIdentification(x.GetPrimaryKey(), x.GetKeyExtension())).ToList());            
     }
 
-    public async Task AttackMonster(IPlayerGrain attacker, Guid targetId)
+    public async Task AttackMonster(BattleStats attackerStats, Guid monsterId)
     {
         // get the attacker stats for the attack, get the target stats for the defense, calculate damage, apply it
 
-        var attackerStats = await attacker.GetStats();
+        AnsiConsole.MarkupLine($"[yellow]Attacker: {attackerStats}[/]");
 
-        var monster = state.State.Monsters.First(x => x.GetPrimaryKey() == targetId); 
-        var targetStats = await monster.GetStats();
+        var monster = state.State.Monsters.First(x => x.GetPrimaryKey() == monsterId);
+        AnsiConsole.MarkupLine("Monster Id: {0}, Title: {1}.", monster.GetPrimaryKey(), monster.GetKeyExtension());
 
-        var damage = attackerStats.Attack - targetStats.Defense;
+        var defenderStats = await monster.GetStats();
+        AnsiConsole.MarkupLine($"[yellow]Defender: {defenderStats}[/]");
+
+        var damage = attackerStats.Attack - defenderStats.Defense;
 
         if (damage > 0)
         {

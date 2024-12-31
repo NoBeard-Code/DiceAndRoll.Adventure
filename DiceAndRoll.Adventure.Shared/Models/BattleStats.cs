@@ -1,7 +1,7 @@
 ﻿namespace DiceAndRoll.Adventure.Shared.Models;
 
-[GenerateSerializer]
-public class BattleStats
+[GenerateSerializer, Immutable]
+public record BattleStats
 {
     public byte Health { get; set; }
 

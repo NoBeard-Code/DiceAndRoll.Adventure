@@ -140,6 +140,8 @@ internal sealed class PlayerGrain(
             Defense = state.State.Info!.Defense
         };
 
+        AnsiConsole.MarkupLine($"[purple]Initial player stats: {state.State.Stats}[/]");
+
         await state.WriteStateAsync();
 
         AnsiConsole.MarkupLine("[red bold rapidblink]You have been engaged in combat![/]");
@@ -161,9 +163,9 @@ internal sealed class PlayerGrain(
             return "[fuchsia]You are not in a combat situation.[/]";
         }
 
-        await encounter.AttackMonster(this, targetId);
+        await encounter.AttackMonster(state.State.Stats, targetId);
 
-        return string.Empty;
+        return "Attack finished.";
     }
 
     public async Task<string> Flee()
