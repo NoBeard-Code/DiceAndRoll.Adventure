@@ -177,7 +177,7 @@ internal sealed class EncounterGrain(
         }
     }
 
-    private static async Task<bool> ExecuteAttack(BattleStats attackerStats, BattleStats defenderStats, IBeligerent defender)
+    private static async Task<bool> ExecuteAttack(BattleStats attackerStats, BattleStats defenderStats, IBelligerent defender)
     {
         // get the attacker stats for the attack, get the target stats for the defense, calculate damage, apply it
 

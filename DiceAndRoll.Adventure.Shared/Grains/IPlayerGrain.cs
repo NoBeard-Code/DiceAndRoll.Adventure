@@ -2,7 +2,7 @@
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IPlayerGrain : IGrainWithGuidKey, IBeligerent
+public interface IPlayerGrain : IGrainWithGuidKey, IBelligerent
 {
     Task SetCharacter(string name, CharacterInfo character);
 
@@ -30,5 +30,6 @@ public interface IPlayerGrain : IGrainWithGuidKey, IBeligerent
 
     Task<bool> AmIDead();
 
-    // Task<string> Kill(PlayerInfo targetPlayer);
+    [Obsolete]
+    Task<string> Kill(PlayerInfo targetPlayer); 
 }

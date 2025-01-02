@@ -5,9 +5,9 @@ using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
-internal class PlayerState(string Name)
+internal class PlayerState(string name) : BelligerentState
 {
-    public string Name { get; set; } = Name;
+    public string Name { get; set; } = name;
 
     public CharacterInfo? Info { get; set; }
 
@@ -15,36 +15,36 @@ internal class PlayerState(string Name)
 
     public string? PreviousLocation { get; set; }
 
-    public BattleStats Stats { get; set; } = new();
-
     public bool Died { get; set; }   
 }
 
 internal sealed class PlayerGrain(
     [PersistentState("player", Constants.ORLEANS_GRAIN_STORAGE)]
-    IPersistentState<PlayerState> state) : Grain, IPlayerGrain
+        IPersistentState<PlayerState> state) : BelligerentGrain<PlayerState>(state), IPlayerGrain
 {
+    private readonly IPersistentState<PlayerState> _state = state;
+
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        state.State = new PlayerState("nobody");
+        _state.State = new PlayerState("nobody");
 
-        await state.WriteStateAsync();
+        await _state.WriteStateAsync();
 
         await base.OnActivateAsync(cancellationToken);
     }
 
     public async Task SetCharacter(string name, CharacterInfo character)
     {
-        if (state.RecordExists)
+        if (_state.RecordExists)
         {
-            await state.ClearStateAsync();
+            await _state.ClearStateAsync();
         }
 
-        state.State.Name = name;
-        state.State.Info = character;
-        state.State.Died = false;
+        _state.State.Name = name;
+        _state.State.Info = character;
+        _state.State.Died = false;
 
-        await state.WriteStateAsync();
+        await _state.WriteStateAsync();
     }
 
     public async Task Appear(string location)
@@ -55,36 +55,36 @@ internal sealed class PlayerGrain(
 
     private PlayerInfo GetPlayerInfo()
     {
-        return new PlayerInfo(this.GetPrimaryKey(), state.State.Name);
+        return new PlayerInfo(this.GetPrimaryKey(), _state.State.Name);
     }
 
     public async Task<string> Look()
     {
-        if (state.State.CurrentLocation is null)
+        if (_state.State.CurrentLocation is null)
         {
             return "[grey]You are in the void. Nobody returns from here, but ghosts![/]";
         } 
         else
         {
-            return await state.State.CurrentLocation.Describe(GetPlayerInfo());
+            return await _state.State.CurrentLocation.Describe(GetPlayerInfo());
         }
     }
 
     public async Task<string> GoTo(string direction)
     {
         ILocationGrain? destination = null;
-        if (state.State.CurrentLocation is not null)
+        if (_state.State.CurrentLocation is not null)
         {
-            destination = await state.State.CurrentLocation.ExitTo(direction);
+            destination = await _state.State.CurrentLocation.ExitTo(direction);
         }
 
         var description = new StringBuilder();
 
-        if (state.State.CurrentLocation is not null && destination is not null)
+        if (_state.State.CurrentLocation is not null && destination is not null)
         {
             description.AppendLine("Allright, let's go there!");
 
-            await state.State.CurrentLocation.Exit(GetPlayerInfo());
+            await _state.State.CurrentLocation.Exit(GetPlayerInfo());
 
             await SetLocations(destination, direction);
 
@@ -106,43 +106,43 @@ internal sealed class PlayerGrain(
     {
         await location.Enter(GetPlayerInfo());
 
-        state.State.CurrentLocation = location;
-        state.State.PreviousLocation = previous; // for going back
+        _state.State.CurrentLocation = location;
+        _state.State.PreviousLocation = previous; // for going back
 
-        await state.WriteStateAsync();
+        await _state.WriteStateAsync();
     }
 
     public async Task<string> GoBack()
     {
-        if (state.State.PreviousLocation is null)
+        if (_state.State.PreviousLocation is null)
         {
             return "[fuchsia]You cannot go back from here.[/]";
         }
 
-        return await GoTo(state.State.PreviousLocation);
+        return await GoTo(_state.State.PreviousLocation);
     }
 
     public async Task<string> Fight()
     {
-        if (state.State.CurrentLocation is null)
+        if (_state.State.CurrentLocation is null)
         {
             AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
             return "[fuchsia]You are not in a combat situation.[/]";
         }
 
-        await state.State.CurrentLocation.EngageInEncounter(this);
+        await _state.State.CurrentLocation.EngageInEncounter(this);
 
         // reset battle stats
-        state.State.Stats = new BattleStats()
+        _state.State.Stats = new BattleStats()
         {
-            Health = state.State.Info!.Health,
-            Attack = state.State.Info!.Attack,
-            Defense = state.State.Info!.Defense
+            Health = _state.State.Info!.Health,
+            Attack = _state.State.Info!.Attack,
+            Defense = _state.State.Info!.Defense
         };
 
-        AnsiConsole.MarkupLine($"[purple]Initial player stats: {state.State.Stats}[/]");
+        AnsiConsole.MarkupLine($"[purple]Initial player stats: {_state.State.Stats}[/]");
 
-        await state.WriteStateAsync();
+        await _state.WriteStateAsync();
 
         AnsiConsole.MarkupLine("[red bold rapidblink]You have been engaged in combat![/]");
         return "[red bold rapidblink]You have been engaged in combat![/]";
@@ -150,33 +150,33 @@ internal sealed class PlayerGrain(
 
     public async Task<string> Attack(Guid targetId)
     {
-        if (state.State.CurrentLocation is null)
+        if (_state.State.CurrentLocation is null)
         {
             AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
             return "[fuchsia]You are not in a combat situation.[/]";
         }
 
-        var encounter = await state.State.CurrentLocation.GetEncounterReference();
+        var encounter = await _state.State.CurrentLocation.GetEncounterReference();
         if (encounter is null)
         {
             AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
             return "[fuchsia]You are not in a combat situation.[/]";
         }
 
-        await encounter.AttackMonster(state.State.Stats, targetId);
+        await encounter.AttackMonster(_state.State.Stats, targetId);
 
         return "Attack finished.";
     }
 
     public async Task<string> Flee()
     {
-        if (state.State.CurrentLocation is null)
+        if (_state.State.CurrentLocation is null)
         {
             AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
             return "[fuchsia]You are not in a combat situation.[/]";
         }
 
-        await state.State.CurrentLocation.LeaveEncounter(this);
+        await _state.State.CurrentLocation.LeaveEncounter(this);
 
         AnsiConsole.MarkupLine("[green]You have fled from combat![/]");
         return "[teal]You have fled from combat![/]";
@@ -184,12 +184,12 @@ internal sealed class PlayerGrain(
 
     public async Task<List<MonsterIdentification>?> GetMonstersInEncounter()
     {
-        if (state.State.CurrentLocation is null)
+        if (_state.State.CurrentLocation is null)
         {
             return null;
         }
 
-        return await state.State.CurrentLocation.GetMonsters(true);
+        return await _state.State.CurrentLocation.GetMonsters(true);
     }
 
     public async Task<string> Die()
@@ -197,24 +197,24 @@ internal sealed class PlayerGrain(
         // TODO: drop all belongings
 
         // exit the room and the game
-        if (state.State.CurrentLocation != null)
+        if (_state.State.CurrentLocation != null)
         {
-            await state.State.CurrentLocation.Exit(GetPlayerInfo());
-            state.State.CurrentLocation = null;
+            await _state.State.CurrentLocation.Exit(GetPlayerInfo());
+            _state.State.CurrentLocation = null;
         }
 
-        state.State.Died = true;
+        _state.State.Died = true;
 
-        await state.WriteStateAsync();
+        await _state.WriteStateAsync();
 
         return string.Empty;
     }
 
     public async Task<Dictionary<string, string>?> FindDirections()
     {
-        if (state.State.CurrentLocation is null) return null;
+        if (_state.State.CurrentLocation is null) return null;
 
-        var connections = await state.State.CurrentLocation.GetConnections();
+        var connections = await _state.State.CurrentLocation.GetConnections();
 
         var result = new Dictionary<string, string>();  
 
@@ -232,42 +232,33 @@ internal sealed class PlayerGrain(
 
     public async Task<List<PlayerInfo>?> FindOthers()
     {
-        if (state.State.CurrentLocation is null) return null;
+        if (_state.State.CurrentLocation is null) return null;
 
-        var players = await state.State.CurrentLocation.GetPlayers();
+        var players = await _state.State.CurrentLocation.GetPlayers();
 
         return players.Where(x => x.Key != this.GetPrimaryKey()).ToList();
     }
 
     public Task<bool> AmIDead()
     {
-        return Task.FromResult(state.State.Died);
+        return Task.FromResult(_state.State.Died);
     }
 
     #region Beligerent members 
 
-    public Task<BattleStats> GetStats()
+    [Obsolete]
+    public async Task<string> Kill(PlayerInfo targetPlayer)
     {
-        return Task.FromResult(state.State.Stats);
+        var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key);
+
+        await target.Die();
+
+        return $"{targetPlayer.Name} is now dead.";
     }
 
-    public Task<bool> TakeHit(byte damage)
+    public async override Task Kill()
     {
-        throw new NotImplementedException();
-    }
-
-    //public async Task<string> Kill(PlayerInfo targetPlayer)
-    //{
-    //    var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key);
-
-    //    await target.Die();
-
-    //    return $"{targetPlayer.Name} is now dead.";
-    //}
-
-    public async Task Kill()
-    {
-        AnsiConsole.MarkupLine("[maroon]Player {0} has been killed.[/]", state.State.Name);
+        AnsiConsole.MarkupLine("[maroon]Player {0} has been killed.[/]", _state.State.Name);
 
         await Die();
 

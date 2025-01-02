@@ -2,7 +2,7 @@
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IBeligerent
+public interface IBelligerent
 {
     Task<BattleStats> GetStats();
 
