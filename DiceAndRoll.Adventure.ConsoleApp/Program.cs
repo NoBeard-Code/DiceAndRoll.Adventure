@@ -230,32 +230,38 @@ async Task<string> FightPrompt()
 {
     AnsiConsole.MarkupLine(await player.Fight());
 
-    var monsters = await player.GetMonstersInEncounter();
+    const string fleeCommand = "FLEE!";
+    var command = string.Empty;
 
-    if (monsters is null || monsters.Count == 0)
+    do
     {
-        return "[fuchsia]There are no monsters to fight.[/]";
-    }
-    else
-    {
-        var options = monsters.Select(x => "attack " + x.Title).ToList();
-        options.Add("FLEE!");
+        var monsters = await player.GetMonstersInEncounter();
 
-        var command = AnsiConsole.Prompt(new SelectionPrompt<string>()
-            .Title("[fuchsia]What will you do?[/]")
-            .AddChoices(options)
-        );
-
-        if (command == "FLEE!")
+        if (monsters is null || monsters.Count == 0)
         {
-            return await player.Flee();
+            return "[fuchsia]There are no monsters to fight.[/]";
         }
         else
         {
-            var option = options.First(x => x == command)[7..];
-            var monster = monsters.First(x => x.Title == option);
+            var options = monsters.Select(x => "attack " + x.Title).ToList();
+            options.Add(fleeCommand);
 
-            return await player.Attack(monster.Id);
+            command = AnsiConsole.Prompt(new SelectionPrompt<string>()
+                .Title("[fuchsia]What will you do?[/]")
+                .AddChoices(options)
+            );
+
+            if (command == fleeCommand)
+            {
+                return await player.Flee();
+            }
+            else
+            {
+                var option = options.First(x => x == command)[7..];
+                var monster = monsters.First(x => x.Title == option);
+
+                await player.Attack(monster.Id);
+            }
         }
-    }
+    } while (true);
 }

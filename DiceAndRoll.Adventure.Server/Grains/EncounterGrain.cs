@@ -36,7 +36,9 @@ internal sealed class EncounterGrain(
 
             var grain = GrainFactory.GetGrain<IMonsterGrain>(Guid.NewGuid(), $"{monster.Title} {names + 1}");
             await grain.Configure(monster);
+
             state.State.Monsters.Add(grain);
+
             beligerents.Add(grain.GetPrimaryKey());
         }
 
@@ -44,11 +46,11 @@ internal sealed class EncounterGrain(
         state.State.Round = 1;
         state.State.InitiativeRow = beligerents.Shuffle();
 
+        await state.WriteStateAsync();
+
         AnsiConsole.MarkupLine($"[fuchsia]Battle has begun. Round {state.State.Round}:[/]");
 
         NextTurn();
-
-        await state.WriteStateAsync();
     }
 
     private async void NextTurn()
@@ -172,7 +174,9 @@ internal sealed class EncounterGrain(
             if (isDead)
             {
                 await monster.Kill();
+
                 state.State.Monsters.Remove(monster);
+                await state.WriteStateAsync();
             }
         }
     }
