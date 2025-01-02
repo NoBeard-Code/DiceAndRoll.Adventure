@@ -26,6 +26,8 @@ internal sealed class EncounterGrain(
     {
         // store beligerents into state, construct initiative row, reset round and turn
 
+        ResetBattle();
+
         List<Guid> beligerents = [initiator.GetPrimaryKey()];
 
         List<string> monsterNames = [];
@@ -51,6 +53,15 @@ internal sealed class EncounterGrain(
         AnsiConsole.MarkupLine($"[fuchsia]Battle has begun. Round {state.State.Round}:[/]");
 
         NextTurn();
+    }
+
+    private void ResetBattle()
+    {
+        //state.State.Players.Clear();
+        //state.State.Monsters.Clear();
+        //state.State.Round = 0;
+        //state.State.Turn = 0;
+        //state.State.InitiativeRow.Clear();
     }
 
     private async void NextTurn()
@@ -181,7 +192,7 @@ internal sealed class EncounterGrain(
         }
     }
 
-    private static async Task<bool> ExecuteAttack(BattleStats attackerStats, BattleStats defenderStats, IBelligerent defender)
+    private static async Task<bool> ExecuteAttack(BattleStats attackerStats, BattleStats defenderStats, IBelligerentGrain defender)
     {
         // get the attacker stats for the attack, get the target stats for the defense, calculate damage, apply it
 
