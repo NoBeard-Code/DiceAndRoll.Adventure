@@ -24,3 +24,52 @@ public static class TypeExtensions
         return keyExtension;
     }
 }
+
+public class CurrentList<T> : List<T>
+{
+    private int _currentIndex = -1;
+
+    public T? Current
+    {
+        get
+        {
+            if (_currentIndex >= 0 && _currentIndex < Count)
+            {
+                return this[_currentIndex];
+            }
+            return default;
+        }
+    }
+
+    public void Reset()
+    {
+        _currentIndex = (Count > 0) ? 0 : - 1;
+    }
+
+    public T? MoveNext()
+    {
+        if (_currentIndex < Count - 1)
+        {
+            _currentIndex++;
+        }
+        else
+        {
+            // Reset the index to the beginning of the list
+            _currentIndex = 0;
+        }
+
+        return Current;
+    }
+
+    public new void Add(T item)
+    {
+        base.Add(item);
+    }
+
+    public new void Remove(T item)
+    {
+        base.Remove(item);
+    }
+
+    public bool IsLast => _currentIndex == Count - 1;
+}

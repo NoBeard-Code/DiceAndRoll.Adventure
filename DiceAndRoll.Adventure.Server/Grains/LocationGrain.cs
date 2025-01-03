@@ -172,13 +172,13 @@ internal sealed class LocationGrain(
             encounter = GrainFactory.GetGrain<IEncounterGrain>(Guid.NewGuid());
 
             // create monster grains to track their stats
-            await encounter.StartBattle(state.State.Monsters, player);
+            await encounter.Start(state.State.Monsters, player);
 
             state.State.Encounter = encounter;
         }
         else
         {
-            await encounter.AddPlayer(player);
+            await encounter.Join(player);
         }
 
         await state.WriteStateAsync();
@@ -190,7 +190,7 @@ internal sealed class LocationGrain(
         var encounter = state.State.Encounter;
         if (encounter != null)
         {
-            if (await encounter.RemovePlayer(player)) // if battle ended
+            if (await encounter.Leave(player)) // if battle ended
             {
                 state.State.Encounter = null;
                 await state.WriteStateAsync();

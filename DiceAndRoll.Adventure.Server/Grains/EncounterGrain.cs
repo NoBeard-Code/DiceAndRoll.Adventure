@@ -5,6 +5,8 @@ using Spectre.Console;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
+internal record Belligerent(Guid Id, string Name, bool IsPlayer);
+
 internal class EncounterState
 {
     public List<IPlayerGrain> Players { get; set; } = [];
@@ -15,105 +17,76 @@ internal class EncounterState
 
     public byte Turn { get; set; }
 
-    public List<Guid> InitiativeRow { get; set; } = [];
+    public CurrentList<Belligerent> InitiativeRow { get; set; } = [];
 }
 
 internal sealed class EncounterGrain(
     [PersistentState("encounter", Constants.ORLEANS_GRAIN_STORAGE)]
     IPersistentState<EncounterState> state) : Grain, IEncounterGrain
 {
-    public async Task StartBattle(List<MonsterInfo> monsters, IPlayerGrain initiator)
+
+    public async Task Start(List<MonsterInfo> monsters, IPlayerGrain initiator)
     {
-        // store beligerents into state, construct initiative row, reset round and turn
+        if (state.RecordExists)
+            await state.ClearStateAsync();
 
-        ResetBattle();
+        // create the list of belligerents, set the players and monsters, shuffle the initiative row
 
-        List<Guid> beligerents = [initiator.GetPrimaryKey()];
+        CurrentList<Belligerent> beligerents = [ new Belligerent(initiator.GetPrimaryKey(), "Player 1", true)]; // TODO: later, do the composite key
 
         List<string> monsterNames = [];
         foreach (var monster in monsters)
         {
             var names = monsterNames.Count(x => x == monster.Title); // ensure unique names
-            monsterNames.Add(monster.Title);    
+            monsterNames.Add(monster.Title);
 
-            var grain = GrainFactory.GetGrain<IMonsterGrain>(Guid.NewGuid(), $"{monster.Title} {names + 1}");
+            var name = $"{monster.Title} {names + 1}";
+            var grain = GrainFactory.GetGrain<IMonsterGrain>(Guid.NewGuid(), name);
             await grain.Configure(monster);
 
             state.State.Monsters.Add(grain);
 
-            beligerents.Add(grain.GetPrimaryKey());
+            beligerents.Add(new Belligerent(grain.GetPrimaryKey(), name, false));
         }
 
         state.State.Players = [initiator];
-        state.State.Round = 1;
-        state.State.InitiativeRow = beligerents.Shuffle();
+        state.State.InitiativeRow = [.. beligerents.Shuffle()];
 
         await state.WriteStateAsync();
 
-        AnsiConsole.MarkupLine($"[fuchsia]Battle has begun. Round {state.State.Round}:[/]");
-
-        NextTurn();
+        // TODO: continue with logic
+        await NextTurn(state.State.InitiativeRow);
     }
 
-    private void ResetBattle()
+    public Task<string> Join(IPlayerGrain player)
     {
-        //state.State.Players.Clear();
-        //state.State.Monsters.Clear();
-        //state.State.Round = 0;
-        //state.State.Turn = 0;
-        //state.State.InitiativeRow.Clear();
+        // add player to list of players, add it to the initiative row at the end
+
+        state.State.Players.Add(player);
+
+        state.State.InitiativeRow.Add(new Belligerent(player.GetPrimaryKey(), $"Player {state.State.Players.Count}", true));
+
+        return Task.FromResult("Player has joined the fight.");
     }
 
-    private async void NextTurn()
+    public async Task<bool> Leave(IPlayerGrain player)
     {
-        state.State.Turn++;
-
-        if (state.State.Turn > state.State.InitiativeRow.Count)
+        // if there is no more players, end the battle
+        if (state.State.Players.Count <= 1)
         {
-            state.State.Turn = 1;
-            state.State.Round++;
-            AnsiConsole.MarkupLine($"[fuchsia]Round {state.State.Round} started:[/]");
+            AnsiConsole.MarkupLine("[maroon bold]Encounter has been cancelled, the monsters will reset their state.[/]");
+
+            await End();
+            return true; // battle ended
         }
 
-        AnsiConsole.MarkupLine($"[purple]Turn {state.State.Turn}:[/]");
+        // if there is still some players, remove player from list of players, remove it from the initiative row
+        await RemovePlayer(player);
 
-        // find the beligerent and execute attack if it's monster's turn
-
-        var candidate = state.State.InitiativeRow[state.State.Turn - 1];
-
-        var foundPlayer = state.State.Players.Find(x => x.GetPrimaryKey() == candidate);
-        if (foundPlayer != null)
-        {
-            return;
-        }
-        else
-        {
-            var foundMonster = state.State.Monsters.Find(x => x.GetPrimaryKey() == candidate);
-            if (foundMonster != null)
-            {
-                var randomPlayer = state.State.Players[Random.Shared.Next(0, state.State.Players.Count - 1)];
-
-                var isDefenderKilled = await ExecuteAttack(
-                    await foundMonster.GetStats(),
-                    await randomPlayer.GetStats(), randomPlayer);
-
-                if (isDefenderKilled)
-                {
-                    if (randomPlayer is IMonsterGrain)
-                    {
-                        // state.State.Monsters.Remove(randomPlayer);
-                    }
-                    else if (randomPlayer is IPlayerGrain)
-                    {
-                        state.State.Players.Remove(randomPlayer);
-                    }
-                    state.State.InitiativeRow.Remove(randomPlayer.GetPrimaryKey());
-                }
-            }
-        }
+        return false; // battle continues
     }
 
-    public Task EndBattle()
+    public Task End()
     {
         AnsiConsole.MarkupLine("[red]Battle has ended.[/]");
 
@@ -125,38 +98,109 @@ internal sealed class EncounterGrain(
             monster.Kill();
         }
 
+        state.ClearStateAsync(); // clear the state
+
         DeactivateOnIdle(); // deactivate the grain when it is not used
 
         return Task.CompletedTask;
     }
 
-    public Task<string> AddPlayer(IPlayerGrain player)
+    private async Task StartBattle()
     {
-        // add player to list of players, add it to the initiative row at the end
+        ResetBattle();
 
-        state.State.Players.Add(player);
-
-        state.State.InitiativeRow.Add(player.GetPrimaryKey());
-
-        return Task.FromResult("Player has joined the fight.");
+        do
+        {
+            await StartRound();
+        }
+        while (state.State.Players.Count > 1 && state.State.Monsters.Count > 0);
+        
+        await End();
     }
 
-    public async Task<bool> RemovePlayer(IPlayerGrain player)
+    private void ResetBattle()
     {
-        // if there is no more players, end the battle
-        if (state.State.Players.Count <= 1)
-        {
-            AnsiConsole.MarkupLine("[maroon bold]Encounter has been cancelled, the monsters will reset their state.[/]");
+        //state.State.Players.Clear();
+        //state.State.Monsters.Clear();
+        state.State.Round = 0;
+        //state.State.Turn = 0;
+        //state.State.InitiativeRow.Clear();
+    }
 
-            await EndBattle();
-            return true; // battle ended
+    private async Task<string> StartRound()
+    {
+        state.State.Round++;
+        state.State.Turn = 0;
+
+        AnsiConsole.MarkupLine($"[fuchsia bold]ROUND {state.State.Round} started:[/]");
+
+        state.State.InitiativeRow.Reset();
+
+        do
+        {
+            await NextTurn(state.State.InitiativeRow);
+
+            state.State.InitiativeRow.MoveNext();
+
+        } while (!state.State.InitiativeRow.IsLast);
+
+        await state.WriteStateAsync();
+
+        return "Round finished.";
+    }
+
+    private async Task NextTurn(CurrentList<Belligerent> initiativeRow)
+    {
+        if (initiativeRow.Current == null)
+        {
+            return; // no one is on the move - everyone is dead!
         }
 
-        // if there is still some players, remove player from list of players, remove it from the initiative row
-        state.State.Players.Remove(player);
-        state.State.InitiativeRow.Remove(player.GetPrimaryKey());
+        state.State.Turn++;
+        AnsiConsole.MarkupLine($"[fuchsia]Turn {state.State.Turn} started:[/]");
 
-        return false; // battle continues
+        if (initiativeRow.Current.IsPlayer)
+        {
+            return;
+        }
+
+        // monster's turn:
+        var monster = state.State.Monsters.First(x => x.GetPrimaryKey() == initiativeRow.Current.Id);
+        await SimulateMonsterMove(monster);
+    }
+
+    private async Task SimulateMonsterMove(IMonsterGrain monster)
+    {
+        Thread.Sleep(1000); // simulate monster's thinking
+
+        var monsterStats = await monster.GetStats();
+
+        var randomPlayer = state.State.Players[Random.Shared.Next(0, state.State.Players.Count - 1)];
+        
+        var playerStats = new BattleStats
+        {
+            Health = 100
+        }; //  await randomPlayer.GetStats(); // circular reference to the player grain!!
+
+        Thread.Sleep(2000); // simulate monster's attack
+
+        var isDefenderKilled = await ExecuteAttack(monsterStats, playerStats, randomPlayer);
+        if (isDefenderKilled)
+        {
+            await RemovePlayer(randomPlayer);
+        }
+
+        Thread.Sleep(500); // simulate monster's thinking
+    }
+
+    private async Task RemovePlayer(IPlayerGrain player)
+    {
+        var target = state.State.InitiativeRow.First(x => x.Id == player.GetPrimaryKey());
+        state.State.InitiativeRow.Remove(target);
+
+        state.State.Players.Remove(player);
+
+        await state.WriteStateAsync();
     }
 
     public Task<List<MonsterIdentification>> GetMonsters()
