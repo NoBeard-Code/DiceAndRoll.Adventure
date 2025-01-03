@@ -24,6 +24,14 @@ internal sealed class EncounterGrain(
     [PersistentState("encounter", Constants.ORLEANS_GRAIN_STORAGE)]
     IPersistentState<EncounterState> state) : Grain, IEncounterGrain
 {
+    // TaskCompletionSource is used to create a task that the grain will wait on
+    private TaskCompletionSource<bool>? _pauseTaskCompletionSource;
+
+    public override Task OnActivateAsync(CancellationToken cancellationToken)
+    {
+        _pauseTaskCompletionSource = new TaskCompletionSource<bool>();
+        return base.OnActivateAsync(cancellationToken);
+    }
 
     public async Task Start(List<MonsterInfo> monsters, IPlayerGrain initiator)
     {
@@ -54,8 +62,9 @@ internal sealed class EncounterGrain(
 
         await state.WriteStateAsync();
 
-        // TODO: continue with logic
-        await NextTurn(state.State.InitiativeRow);
+        // start the battle in a separate thread
+        Task.Factory.StartNew(async () => await StartBattle());
+        //await StartBattle();
     }
 
     public Task<string> Join(IPlayerGrain player)
@@ -161,6 +170,7 @@ internal sealed class EncounterGrain(
 
         if (initiativeRow.Current.IsPlayer)
         {
+            _pauseTaskCompletionSource?.Task.Wait(); // wait for player's action
             return;
         }
 
@@ -234,6 +244,8 @@ internal sealed class EncounterGrain(
                 await state.WriteStateAsync();
             }
         }
+
+        _pauseTaskCompletionSource?.SetResult(true); // resume the battle
     }
 
     private static async Task<bool> ExecuteAttack(BattleStats attackerStats, BattleStats defenderStats, IBelligerentGrain defender)
