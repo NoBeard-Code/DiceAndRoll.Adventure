@@ -4,31 +4,25 @@ namespace DiceAndRoll.Adventure.Shared.Grains;
 
 internal interface ILocationGrain : IGrainWithStringKey
 {
-    Task<LocationInfo?> GetInfo();
+    internal Task<LocationInfo?> GetInfo();
 
-    Task Configure(LocationInfo data, List<MonsterInfo> monsters);
+    internal Task Configure(LocationInfo data, List<MonsterInfo> monsters);
 
-    Task Enter(PlayerInfo player);
+    internal Task Enter(PlayerInfo player);
 
-    Task Exit(PlayerInfo player);
+    internal Task Exit(PlayerInfo player);
 
     Task<string> Describe(PlayerInfo toMe);
 
-    Task<ILocationGrain?> ExitTo(string destination);
+    internal Task<ILocationGrain?> ExitTo(string destination);
 
-    Task<Dictionary<string, ILocationGrain>> GetConnections();
+    internal Task<Dictionary<string, ILocationGrain>> GetConnections();
 
-    Task<List<PlayerInfo>> GetPlayers();
+    internal Task<List<PlayerInfo>> GetPlayers();
 
-    Task<IEncounterGrain> EngageInEncounter(IPlayerGrain player);
+    internal Task<IEncounterGrain> EngageInEncounter(IPlayerGrain player);
 
-
-
-
-
-
-
-    Task LeaveEncounter(IPlayerGrain player);
+    internal Task EndEncounter();
 
     Task<IEncounterGrain?> GetEncounterReference();
 }

@@ -259,7 +259,7 @@ async Task<string> FightPrompt()
 
             if (command == fleeCommand)
             {
-                return await player.Flee();
+                return await encounter.Leave(player);
             }
             else
             {

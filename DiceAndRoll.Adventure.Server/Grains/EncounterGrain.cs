@@ -68,21 +68,19 @@ internal sealed class EncounterGrain(
         return Task.FromResult("Player has joined the fight.");
     }
 
-    public async Task<bool> Leave(IPlayerGrain player)
+    public async Task<string> Leave(IPlayerGrain player)
     {
         // if there is no more players, end the battle
         if (state.State.Players.Count <= 1)
         {
-            AnsiConsole.MarkupLine("[maroon bold]Encounter has been cancelled, the monsters will reset their state.[/]");
-
             await End();
-            return true; // battle ended
+            return "[maroon bold]You left encounter. Battle is over.[/]"; 
         }
 
         // if there is still some players, remove player from list of players, remove it from the initiative row
         await RemovePlayer(player);
 
-        return false; // battle continues
+        return "[maroon bold]You left encounter. Battle continues.[/]"; 
     }
 
     public Task End()
@@ -98,6 +96,10 @@ internal sealed class EncounterGrain(
         }
 
         state.ClearStateAsync(); // clear the state
+
+        // remove reference to the encounter from the location grain
+        var location = GrainFactory.GetGrain<ILocationGrain>(this.GetKeyExtension());
+        location?.EndEncounter();
 
         DeactivateOnIdle(); // deactivate the grain when it is not used
 

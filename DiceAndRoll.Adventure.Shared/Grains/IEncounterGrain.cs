@@ -2,13 +2,13 @@
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IEncounterGrain : IGrainWithGuidKey
+public interface IEncounterGrain : IGrainWithGuidCompoundKey
 {
     internal Task Start(List<MonsterInfo> monsters, IPlayerGrain initiator);
 
     internal Task<string> Join(IPlayerGrain player);
 
-    internal Task<bool> Leave(IPlayerGrain player);
+    Task<string> Leave(IPlayerGrain player);
 
     internal Task End();
 

@@ -34,6 +34,4 @@ public interface IPlayerGrain : IGrainWithGuidKey, IBelligerentGrain
 
 
     Task<string> Attack(Guid targetId);
-
-    Task<string> Flee();
 }

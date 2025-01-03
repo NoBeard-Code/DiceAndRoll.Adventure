@@ -1,6 +1,5 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
-using Spectre.Console;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
@@ -143,7 +142,8 @@ internal sealed class LocationGrain(
         var encounter = state.State.Encounter;
         if (encounter == null)
         {
-            encounter = GrainFactory.GetGrain<IEncounterGrain>(Guid.NewGuid());
+            // encounter grain is identified by the location grain key and its own guid
+            encounter = GrainFactory.GetGrain<IEncounterGrain>(Guid.NewGuid(), this.GetPrimaryKeyString());
 
             // create monster grains to track their stats
             await encounter.Start(state.State.Monsters, player);
@@ -160,33 +160,21 @@ internal sealed class LocationGrain(
         return encounter;
     }
 
+    public async Task EndEncounter()
+    {
+        // TODO: write some battle statistics here
 
-
-
-
-
-
-
-
-
-
+        // remove the encounter from the location grain
+        var encounter = state.State.Encounter;
+        if (encounter != null)
+        {
+            state.State.Encounter = null;
+            await state.WriteStateAsync();
+        }
+    }
 
     public Task<IEncounterGrain?> GetEncounterReference()
     {
         return Task.FromResult(state.State.Encounter);
-    }
-
-    public async Task LeaveEncounter(IPlayerGrain player)
-    {
-        // check for active encounter, remove player from it, if no players left, remove encounter
-        var encounter = state.State.Encounter;
-        if (encounter != null)
-        {
-            if (await encounter.Leave(player)) // if battle ended
-            {
-                state.State.Encounter = null;
-                await state.WriteStateAsync();
-            }
-        }
     }
 }

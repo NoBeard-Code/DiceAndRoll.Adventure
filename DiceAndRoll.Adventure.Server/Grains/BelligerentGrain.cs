@@ -56,6 +56,8 @@ internal abstract class BelligerentGrain<TState>(
     {
         AnsiConsole.MarkupLine("[maroon]Belligerent {0} has been killed.[/]", this.GetPrimaryKey());
 
+        state.ClearStateAsync(); // clear the state
+
         DeactivateOnIdle();
 
         return Task.CompletedTask;

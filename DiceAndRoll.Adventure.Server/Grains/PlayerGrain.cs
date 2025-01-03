@@ -235,20 +235,6 @@ internal sealed class PlayerGrain(
         return "Attack finished.";
     }
 
-    public async Task<string> Flee()
-    {
-        if (_state.State.CurrentLocation is null)
-        {
-            AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
-            return "[fuchsia]You are not in a combat situation.[/]";
-        }
-
-        await _state.State.CurrentLocation.LeaveEncounter(this);
-
-        AnsiConsole.MarkupLine("[green]You have fled from combat![/]");
-        return "[teal]You have fled from combat![/]";
-    }
-
     #region Beligerent members 
 
     public async override Task Kill()
