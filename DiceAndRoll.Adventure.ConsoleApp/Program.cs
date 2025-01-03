@@ -219,7 +219,7 @@ async Task<string> KillPrompt()
         if (command != "cancel")
         {
             var choice = others.First(x => x.Name == command);
-            // return await player.Kill(choice);
+            return await player.Kill(choice);
         }
 
         return "It's good to see that there's still some humanity out there ...";

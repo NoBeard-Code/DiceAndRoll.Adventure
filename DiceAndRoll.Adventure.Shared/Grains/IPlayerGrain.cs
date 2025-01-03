@@ -2,7 +2,7 @@
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IPlayerGrain : IGrainWithGuidKey, IBelligerent
+public interface IPlayerGrain : IGrainWithGuidKey, IBelligerentGrain
 {
     Task SetCharacter(string name, CharacterInfo character);
 

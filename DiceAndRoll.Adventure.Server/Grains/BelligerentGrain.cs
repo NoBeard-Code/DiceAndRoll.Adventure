@@ -20,11 +20,17 @@ internal abstract class BelligerentState
 }
 
 internal abstract class BelligerentGrain<TState>(
-    IPersistentState<TState> state) : Grain, IBelligerent where TState : BelligerentState
+    IPersistentState<TState> state) : Grain, IBelligerentGrain where TState : BelligerentState
 {
     public Task<BattleStats> GetStats()
     {
         return Task.FromResult(state.State.Stats);
+    }
+
+    public async Task ResetStats(BattleStats stats)
+    {
+        state.State.Stats = stats;
+        await state.WriteStateAsync();
     }
 
     public async virtual Task<bool> TakeHit(byte damage)

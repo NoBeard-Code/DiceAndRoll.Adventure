@@ -130,8 +130,6 @@ internal sealed class PlayerGrain(
             return "[fuchsia]You are not in a combat situation.[/]";
         }
 
-        await _state.State.CurrentLocation.EngageInEncounter(this);
-
         // reset battle stats
         _state.State.Stats = new BattleStats()
         {
@@ -140,9 +138,11 @@ internal sealed class PlayerGrain(
             Defense = _state.State.Info!.Defense
         };
 
-        AnsiConsole.MarkupLine($"[purple]Initial player stats: {_state.State.Stats}[/]");
+        AnsiConsole.MarkupLine($"Initial player stats: {_state.State.Stats}");
 
         await _state.WriteStateAsync();
+
+        await _state.State.CurrentLocation.EngageInEncounter(this);
 
         AnsiConsole.MarkupLine("[red bold rapidblink]You have been engaged in combat![/]");
         return "[red bold rapidblink]You have been engaged in combat![/]";

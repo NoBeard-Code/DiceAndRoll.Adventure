@@ -2,7 +2,7 @@
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-internal interface IMonsterGrain : IGrainWithGuidCompoundKey, IBelligerent
+internal interface IMonsterGrain : IGrainWithGuidCompoundKey, IBelligerentGrain
 {
     Task Configure(MonsterInfo info);
 

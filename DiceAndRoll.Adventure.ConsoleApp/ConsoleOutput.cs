@@ -17,6 +17,30 @@ internal static class ConsoleOutput
 
     //DisplayCharacters(x);
 
+    internal static void DisplayInitiativeRow()
+    {
+        AnsiConsole.MarkupLine("[bold yellow]Initiative Row:[/]");
+
+        var columns = new List<Text>(){
+            new Text("Item 1", new Style(Color.Red, Color.Black)),
+            new Text("Item 2", new Style(Color.Green, Color.Black)),
+            new Text("Item 3", new Style(Color.Blue, Color.Black))
+        };
+
+        AnsiConsole.Write(new Columns(columns));
+    }
+
+    internal static Panel DisplayBeligerent(bool isPlayer)
+    {
+        var panel = new Panel("Hello World");
+        panel.Header = new PanelHeader("Player");
+        panel.Border = BoxBorder.Rounded;
+        panel.Padding = new Padding(1, 1, 1, 1);
+        panel.Expand();
+
+        return panel;
+    }
+
     internal static void DisplayCharacters(List<CharacterInfo> characters, bool extendedView = false)
     {
         var table = new Table();
