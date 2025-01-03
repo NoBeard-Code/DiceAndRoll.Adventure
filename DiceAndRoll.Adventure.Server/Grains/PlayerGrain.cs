@@ -122,12 +122,73 @@ internal sealed class PlayerGrain(
         return await GoTo(_state.State.PreviousLocation);
     }
 
-    public async Task<string> Fight()
+    public async Task<Dictionary<string, string>?> FindDirections()
+    {
+        if (_state.State.CurrentLocation is null) return null;
+
+        var connections = await _state.State.CurrentLocation.GetConnections();
+
+        var result = new Dictionary<string, string>();
+
+        foreach (var location in connections)
+        {
+            var info = await location.Value.GetInfo();
+            if (info != null)
+            {
+                result.Add(location.Key, info.Title);
+            }
+        }
+
+        return result;
+    }
+
+    public async Task<List<PlayerInfo>?> FindOthers()
+    {
+        if (_state.State.CurrentLocation is null) return null;
+
+        var players = await _state.State.CurrentLocation.GetPlayers();
+
+        return players.Where(x => x.Key != this.GetPrimaryKey()).ToList();
+    }
+
+    public async Task<string> Die()
+    {
+        // TODO: drop all belongings
+
+        // exit the room and the game
+        if (_state.State.CurrentLocation != null)
+        {
+            await _state.State.CurrentLocation.Exit(GetPlayerInfo());
+            _state.State.CurrentLocation = null;
+        }
+
+        _state.State.Died = true;
+
+        await _state.WriteStateAsync();
+
+        return string.Empty;
+    }
+
+    public Task<bool> AmIDead()
+    {
+        return Task.FromResult(_state.State.Died);
+    }
+
+    [Obsolete]
+    public async Task<string> Kill(PlayerInfo targetPlayer)
+    {
+        var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key);
+
+        await target.Die();
+
+        return $"{targetPlayer.Name} is now dead.";
+    }
+
+    public async Task<IEncounterGrain?> Fight()
     {
         if (_state.State.CurrentLocation is null)
         {
-            AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
-            return "[fuchsia]You are not in a combat situation.[/]";
+            return null;
         }
 
         // reset battle stats
@@ -142,11 +203,17 @@ internal sealed class PlayerGrain(
 
         await _state.WriteStateAsync();
 
-        await _state.State.CurrentLocation.EngageInEncounter(this);
-
-        AnsiConsole.MarkupLine("[red bold rapidblink]You have been engaged in combat![/]");
-        return "[red bold rapidblink]You have been engaged in combat![/]";
+        return await _state.State.CurrentLocation.EngageInEncounter(this);
     }
+
+
+
+
+
+
+
+
+
 
     public async Task<string> Attack(Guid targetId)
     {
@@ -182,79 +249,7 @@ internal sealed class PlayerGrain(
         return "[teal]You have fled from combat![/]";
     }
 
-    public async Task<List<MonsterIdentification>?> GetMonstersInEncounter()
-    {
-        if (_state.State.CurrentLocation is null)
-        {
-            return null;
-        }
-
-        return await _state.State.CurrentLocation.GetMonsters(true);
-    }
-
-    public async Task<string> Die()
-    {
-        // TODO: drop all belongings
-
-        // exit the room and the game
-        if (_state.State.CurrentLocation != null)
-        {
-            await _state.State.CurrentLocation.Exit(GetPlayerInfo());
-            _state.State.CurrentLocation = null;
-        }
-
-        _state.State.Died = true;
-
-        await _state.WriteStateAsync();
-
-        return string.Empty;
-    }
-
-    public async Task<Dictionary<string, string>?> FindDirections()
-    {
-        if (_state.State.CurrentLocation is null) return null;
-
-        var connections = await _state.State.CurrentLocation.GetConnections();
-
-        var result = new Dictionary<string, string>();  
-
-        foreach (var location in connections)
-        {
-            var info = await location.Value.GetInfo();
-            if (info != null)
-            {
-                result.Add(location.Key, info.Title);
-            }
-        }
-
-        return result;
-    }
-
-    public async Task<List<PlayerInfo>?> FindOthers()
-    {
-        if (_state.State.CurrentLocation is null) return null;
-
-        var players = await _state.State.CurrentLocation.GetPlayers();
-
-        return players.Where(x => x.Key != this.GetPrimaryKey()).ToList();
-    }
-
-    public Task<bool> AmIDead()
-    {
-        return Task.FromResult(_state.State.Died);
-    }
-
     #region Beligerent members 
-
-    [Obsolete]
-    public async Task<string> Kill(PlayerInfo targetPlayer)
-    {
-        var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key);
-
-        await target.Die();
-
-        return $"{targetPlayer.Name} is now dead.";
-    }
 
     public async override Task Kill()
     {

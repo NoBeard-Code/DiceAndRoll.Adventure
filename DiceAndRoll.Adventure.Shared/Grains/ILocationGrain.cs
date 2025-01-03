@@ -20,9 +20,13 @@ internal interface ILocationGrain : IGrainWithStringKey
 
     Task<List<PlayerInfo>> GetPlayers();
 
-    Task<List<MonsterIdentification>?> GetMonsters(bool inEncounter);
+    Task<IEncounterGrain> EngageInEncounter(IPlayerGrain player);
 
-    Task EngageInEncounter(IPlayerGrain player);
+
+
+
+
+
 
     Task LeaveEncounter(IPlayerGrain player);
 

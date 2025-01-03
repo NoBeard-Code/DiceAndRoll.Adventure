@@ -14,22 +14,26 @@ public interface IPlayerGrain : IGrainWithGuidKey, IBelligerentGrain
 
     Task<string> GoBack();
 
-    Task<string> Fight();
-
-    Task<string> Attack(Guid targetId);
-
-    Task<string> Flee();
-
-    Task<List<MonsterIdentification>?> GetMonstersInEncounter();
-
-    internal Task<string> Die();
-
     Task<Dictionary<string, string>?> FindDirections();
 
     Task<List<PlayerInfo>?> FindOthers();
 
+    internal Task<string> Die();
+
     Task<bool> AmIDead();
 
     [Obsolete]
-    Task<string> Kill(PlayerInfo targetPlayer); 
+    Task<string> Kill(PlayerInfo targetPlayer);
+
+    Task<IEncounterGrain?> Fight();
+
+
+
+
+
+
+
+    Task<string> Attack(Guid targetId);
+
+    Task<string> Flee();
 }

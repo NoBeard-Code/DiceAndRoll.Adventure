@@ -101,7 +101,7 @@ await AnsiConsole.Status()
     });
 
 
-var actions = new List<string>(["look", "go", "back", "fight", "kill", "quit"]);
+var mapActions = new List<string>(["look", "go", "back", "fight", "kill", "quit"]);
 
 string response = "start";
 try
@@ -109,7 +109,7 @@ try
     while (response is not "")
     {
         var command = AnsiConsole.Prompt(new TextPrompt<string>("What will you do?")
-            .AddChoices(actions)
+            .AddChoices(mapActions)
             .DefaultValue("look"));
 
         response = await Run(command);
@@ -228,14 +228,20 @@ async Task<string> KillPrompt()
 
 async Task<string> FightPrompt()
 {
-    AnsiConsole.MarkupLine(await player.Fight());
+    var encounter = await player.Fight();
+    if (encounter == null)
+    {
+        return "[fuchsia]You are not in a combat situation.[/]";
+    }
+
+    AnsiConsole.MarkupLine("[red bold rapidblink]You have been engaged in combat![/]");
 
     const string fleeCommand = "FLEE!";
     var command = string.Empty;
 
     do
     {
-        var monsters = await player.GetMonstersInEncounter();
+        var monsters = await encounter.GetMonsters();
 
         if (monsters is null || monsters.Count == 0)
         {

@@ -135,33 +135,7 @@ internal sealed class LocationGrain(
         return Task.FromResult(state.State.Players); 
     }
 
-    public Task<IEncounterGrain?> GetEncounterReference()
-    {
-        return Task.FromResult(state.State.Encounter);
-    }
-
-    public async Task<List<MonsterIdentification>?> GetMonsters(bool inEncounter)
-    {
-        if (inEncounter)
-        {
-            var encounter = state.State.Encounter;
-            if (encounter != null)
-            {
-                return await encounter.GetMonsters();
-            }
-            else
-            {
-                AnsiConsole.MarkupLine("[fuchsia]No encounter is active in this location.[/]");
-                return null;
-            }
-        }
-        else
-        {
-            return state.State.Monsters.Select(x => new MonsterIdentification(Guid.Empty, x.Title)).ToList();
-        }
-    }
-
-    public async Task EngageInEncounter(IPlayerGrain player)
+    public async Task<IEncounterGrain> EngageInEncounter(IPlayerGrain player)
     {
         // check for active encounter, if not created: create encounter, add monster info, stats and this player info
         // if already active, add this player info to it, return it
@@ -182,6 +156,24 @@ internal sealed class LocationGrain(
         }
 
         await state.WriteStateAsync();
+
+        return encounter;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    public Task<IEncounterGrain?> GetEncounterReference()
+    {
+        return Task.FromResult(state.State.Encounter);
     }
 
     public async Task LeaveEncounter(IPlayerGrain player)

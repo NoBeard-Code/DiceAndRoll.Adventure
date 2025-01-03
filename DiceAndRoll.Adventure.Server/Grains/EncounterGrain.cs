@@ -24,7 +24,6 @@ internal sealed class EncounterGrain(
     [PersistentState("encounter", Constants.ORLEANS_GRAIN_STORAGE)]
     IPersistentState<EncounterState> state) : Grain, IEncounterGrain
 {
-
     public async Task Start(List<MonsterInfo> monsters, IPlayerGrain initiator)
     {
         if (state.RecordExists)
