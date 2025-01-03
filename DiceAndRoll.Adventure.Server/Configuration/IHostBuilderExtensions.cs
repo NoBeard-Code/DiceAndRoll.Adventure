@@ -31,6 +31,7 @@ internal static class IHostBuilderExtensions
 
         builder.ConfigureServices(services => {
             services.AddSingleton<ICharacterService, CharacterService>();
+            services.AddSingleton<IMonsterService, MonsterService>();
             services.AddSingleton<ICampaignService, CampaignService>();
         });
     }

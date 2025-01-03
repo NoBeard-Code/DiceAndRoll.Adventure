@@ -39,6 +39,7 @@ await AnsiConsole.Status()
             var activeGames = await directory.GetActiveGames();
             if (activeGames == null || activeGames.Count == 0) throw new Exception();
 
+            ctx.Status("Fetching first game from list of active games...");
             game = client.GetGrain<IGameGrain>(activeGames[0]);
         }
         catch (Exception)
@@ -53,6 +54,7 @@ if (error)
     return;
 }
 
+AnsiConsole.MarkupLine($"[olive]Loading game completed for game: {game.GetPrimaryKey()}.[/]");
 AnsiConsole.MarkupLine($"[green]Game successfully loaded.[/]");
 
 var name = AnsiConsole.Prompt(
@@ -98,13 +100,16 @@ await AnsiConsole.Status()
         AnsiConsole.MarkupLine(result);
     });
 
+
+var actions = new List<string>(["look", "go", "back", "fight", "kill", "quit"]);
+
 string response = "start";
 try
 {
     while (response is not "")
     {
         var command = AnsiConsole.Prompt(new TextPrompt<string>("What will you do?")
-            .AddChoices(["look", "go", "back", "kill", "quit"])
+            .AddChoices(actions)
             .DefaultValue("look"));
 
         response = await Run(command);
@@ -131,11 +136,14 @@ async Task<string> Run(string command)
         "look" =>
             await player.Look(),
 
-        "go" => 
+        "go" =>
             await GoPrompt(),
 
         "back" =>
             await player.GoBack(),
+
+        "fight" =>
+            await FightPrompt(),
 
         "kill" =>
             await KillPrompt(),
@@ -211,9 +219,49 @@ async Task<string> KillPrompt()
         if (command != "cancel")
         {
             var choice = others.First(x => x.Name == command);
-            return await player.Kill(choice);
+            // return await player.Kill(choice);
         }
 
         return "It's good to see that there's still some humanity out there ...";
     }
+}
+
+async Task<string> FightPrompt()
+{
+    AnsiConsole.MarkupLine(await player.Fight());
+
+    const string fleeCommand = "FLEE!";
+    var command = string.Empty;
+
+    do
+    {
+        var monsters = await player.GetMonstersInEncounter();
+
+        if (monsters is null || monsters.Count == 0)
+        {
+            return "[fuchsia]There are no monsters to fight.[/]";
+        }
+        else
+        {
+            var options = monsters.Select(x => "attack " + x.Title).ToList();
+            options.Add(fleeCommand);
+
+            command = AnsiConsole.Prompt(new SelectionPrompt<string>()
+                .Title("[fuchsia]What will you do?[/]")
+                .AddChoices(options)
+            );
+
+            if (command == fleeCommand)
+            {
+                return await player.Flee();
+            }
+            else
+            {
+                var option = options.First(x => x == command)[7..];
+                var monster = monsters.First(x => x.Title == option);
+
+                await player.Attack(monster.Id);
+            }
+        }
+    } while (true);
 }
