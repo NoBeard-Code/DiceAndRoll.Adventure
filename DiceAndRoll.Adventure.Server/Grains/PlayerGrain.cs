@@ -210,11 +210,10 @@ internal sealed class PlayerGrain(
 
     public async override Task Kill()
     {
-        AnsiConsole.MarkupLine("[maroon]Player {0} has been killed.[/]", _state.State.Name);
-
         await Die();
 
-        DeactivateOnIdle();
+        // DeactivateOnIdle();
+        // no deactivation, as this will cause another grain to be created!
     }
 
     #endregion

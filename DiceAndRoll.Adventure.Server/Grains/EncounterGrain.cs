@@ -114,6 +114,16 @@ internal sealed class EncounterGrain(
         await state.WriteStateAsync();
     }
 
+    private async Task RemoveMonster(IMonsterGrain monster)
+    {
+        var target = state.State.InitiativeRow.First(x => x.Id == monster.GetPrimaryKey());
+        state.State.InitiativeRow.Remove(target);
+
+        state.State.Monsters.Remove(monster);
+
+        await state.WriteStateAsync();
+    }
+
     public Task<List<MonsterIdentification>> GetMonsters()
     {
         return Task.FromResult(state.State.Monsters
@@ -201,24 +211,23 @@ internal sealed class EncounterGrain(
         var attackerStats = await player.GetStats();
         sb.AppendLine($"[yellow]Attacker ({player.GetPrimaryKey()}): {attackerStats}[/]");
 
-        var monster = state.State.Monsters.First(x => x.GetPrimaryKey() == monsterId);
-        var defenderStats = await monster.GetStats();
-        sb.AppendLine($"[yellow]Defender ({monster.GetKeyExtension()}): {defenderStats}[/]");
+        var defender = state.State.Monsters.First(x => x.GetPrimaryKey() == monsterId);
+        var defenderStats = await defender.GetStats();
+        sb.AppendLine($"[yellow]Defender ({defender.GetKeyExtension()}): {defenderStats}[/]");
 
         var damage = attackerStats.Attack - defenderStats.Defense;
 
         if (damage > 0)
         {
-            var isDead = await monster.TakeHit((byte)damage);
-            sb.AppendLine($"[green4 bold]Monster {monster.GetKeyExtension()} has taken {damage} damage.[/]");
+            var isDead = await defender.TakeHit((byte)damage);
+            sb.AppendLine($"[maroon]Monster {defender.GetKeyExtension()} has taken {damage} damage.[/]");
 
             if (isDead)
             {
-                sb.AppendLine($"[green4 bold]Monster {monster.GetKeyExtension()} has been killed.[/]");
-                await monster.Kill();
+                sb.AppendLine($"[maroon bold]Monster {defender.GetKeyExtension()} has been killed.[/]");
+                await defender.Kill();
 
-                state.State.Monsters.Remove(monster);
-                await state.WriteStateAsync();
+                await RemoveMonster(defender);
             }
         }
 
@@ -233,38 +242,26 @@ internal sealed class EncounterGrain(
         var attackerStats = await monster.GetStats();
         sb.AppendLine($"[yellow]Attacker ({monster.GetKeyExtension()}): {attackerStats}[/]");
 
-        var randomPlayer = state.State.Players[Random.Shared.Next(0, state.State.Players.Count - 1)];
-        var defenderStats = await randomPlayer.GetStats();
-        sb.AppendLine($"[yellow]Defender ({randomPlayer.GetPrimaryKey()}): {defenderStats}[/]");
-
-        var isDefenderKilled = await ExecuteAttack(attackerStats, defenderStats, randomPlayer);
-        if (isDefenderKilled)
-        {
-            await RemovePlayer(randomPlayer);
-        }
-
-        return sb.ToString();
-    }
-
-    private static async Task<bool> ExecuteAttack(BattleStats attackerStats, BattleStats defenderStats, IBelligerentGrain defender)
-    {
-        // get the attacker stats for the attack, get the target stats for the defense, calculate damage, apply it
-
-        AnsiConsole.MarkupLine($"[yellow]Attacker: {attackerStats}[/]");
-        AnsiConsole.MarkupLine($"[yellow]Defender: {defenderStats}[/]");
+        var defender = state.State.Players[Random.Shared.Next(0, state.State.Players.Count - 1)];
+        var defenderStats = await defender.GetStats();
+        sb.AppendLine($"[yellow]Defender ({defender.GetPrimaryKey()}): {defenderStats}[/]");
 
         var damage = attackerStats.Attack - defenderStats.Defense;
 
         if (damage > 0)
         {
             var isDead = await defender.TakeHit((byte)damage);
+            sb.AppendLine($"[maroon]Player {defender.GetPrimaryKey()} has taken {damage} damage.[/]");
+
             if (isDead)
             {
+                sb.AppendLine($"[maroon bold]Player {defender.GetPrimaryKey()} has been killed.[/]");
                 await defender.Kill();
-                return true; // defender is dead
+
+                await RemovePlayer(defender);
             }
         }
 
-        return false; // defender is still alive
+        return sb.ToString();
     }
 }
