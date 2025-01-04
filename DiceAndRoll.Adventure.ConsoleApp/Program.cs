@@ -266,7 +266,7 @@ async Task<string> FightPrompt()
                 var option = options.First(x => x == command)[7..];
                 var monster = monsters.First(x => x.Title == option);
 
-                await player.Attack(monster.Id);
+                AnsiConsole.MarkupLine(await encounter.AttackMonster(player, monster.Id));
             }
         }
     } while (true);

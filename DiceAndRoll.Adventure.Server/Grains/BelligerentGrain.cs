@@ -1,6 +1,5 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
-using Spectre.Console;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
@@ -38,12 +37,10 @@ internal abstract class BelligerentGrain<TState>(
         if (state.State.Stats.Health <= damage)
         {
             state.State.Stats.Health = 0;
-            AnsiConsole.MarkupLine("Belligerent's health {0} has been reduced to zero.", this.GetPrimaryKey());
         }
         else
         {
             state.State.Stats.Health -= damage;
-            AnsiConsole.MarkupLine("Belligerent {0} has taken {1} damage.", this.GetPrimaryKey(), damage);
         }
 
         await state.WriteStateAsync();
@@ -54,8 +51,6 @@ internal abstract class BelligerentGrain<TState>(
 
     public virtual Task Kill()
     {
-        AnsiConsole.MarkupLine("[maroon]Belligerent {0} has been killed.[/]", this.GetPrimaryKey());
-
         state.ClearStateAsync(); // clear the state
 
         DeactivateOnIdle();

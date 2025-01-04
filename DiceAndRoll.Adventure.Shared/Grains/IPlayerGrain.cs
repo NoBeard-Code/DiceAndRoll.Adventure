@@ -26,12 +26,4 @@ public interface IPlayerGrain : IGrainWithGuidKey, IBelligerentGrain
     Task<string> Kill(PlayerInfo targetPlayer);
 
     Task<IEncounterGrain?> Fight();
-
-
-
-
-
-
-
-    Task<string> Attack(Guid targetId);
 }

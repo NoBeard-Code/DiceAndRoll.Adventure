@@ -206,35 +206,6 @@ internal sealed class PlayerGrain(
         return await _state.State.CurrentLocation.EngageInEncounter(this);
     }
 
-
-
-
-
-
-
-
-
-
-    public async Task<string> Attack(Guid targetId)
-    {
-        if (_state.State.CurrentLocation is null)
-        {
-            AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
-            return "[fuchsia]You are not in a combat situation.[/]";
-        }
-
-        var encounter = await _state.State.CurrentLocation.GetEncounterReference();
-        if (encounter is null)
-        {
-            AnsiConsole.MarkupLine("[fuchsia]You are not in a combat situation.[/]");
-            return "[fuchsia]You are not in a combat situation.[/]";
-        }
-
-        await encounter.AttackMonster(_state.State.Stats, targetId);
-
-        return "Attack finished.";
-    }
-
     #region Beligerent members 
 
     public async override Task Kill()

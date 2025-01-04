@@ -12,7 +12,7 @@ internal interface ILocationGrain : IGrainWithStringKey
 
     internal Task Exit(PlayerInfo player);
 
-    Task<string> Describe(PlayerInfo toMe);
+    internal Task<string> Describe(PlayerInfo toMe);
 
     internal Task<ILocationGrain?> ExitTo(string destination);
 
@@ -23,6 +23,4 @@ internal interface ILocationGrain : IGrainWithStringKey
     internal Task<IEncounterGrain> EngageInEncounter(IPlayerGrain player);
 
     internal Task EndEncounter();
-
-    Task<IEncounterGrain?> GetEncounterReference();
 }

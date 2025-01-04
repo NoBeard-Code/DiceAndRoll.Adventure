@@ -4,11 +4,11 @@ namespace DiceAndRoll.Adventure.Shared.Grains;
 
 public interface IBelligerentGrain
 {
-    Task<BattleStats> GetStats();
+    internal Task<BattleStats> GetStats();
 
-    Task ResetStats(BattleStats stats);
+    internal Task ResetStats(BattleStats stats);
 
-    Task<bool> TakeHit(byte damage);
+    internal Task<bool> TakeHit(byte damage);
 
-    Task Kill();
+    internal Task Kill();
 }

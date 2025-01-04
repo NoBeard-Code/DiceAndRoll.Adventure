@@ -172,9 +172,4 @@ internal sealed class LocationGrain(
             await state.WriteStateAsync();
         }
     }
-
-    public Task<IEncounterGrain?> GetEncounterReference()
-    {
-        return Task.FromResult(state.State.Encounter);
-    }
 }

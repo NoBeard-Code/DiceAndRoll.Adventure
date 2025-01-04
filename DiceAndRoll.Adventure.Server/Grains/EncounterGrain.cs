@@ -2,6 +2,7 @@
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using Spectre.Console;
+using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
@@ -210,31 +211,36 @@ internal sealed class EncounterGrain(
             .Select(x => new MonsterIdentification(x.GetPrimaryKey(), x.GetKeyExtension())).ToList());            
     }
 
-    public async Task AttackMonster(BattleStats attackerStats, Guid monsterId)
+    public async Task<string> AttackMonster(IPlayerGrain player, Guid monsterId)
     {
         // get the attacker stats for the attack, get the target stats for the defense, calculate damage, apply it
+        var sb = new StringBuilder();
 
-        AnsiConsole.MarkupLine($"[yellow]Attacker: {attackerStats}[/]");
+        var attackerStats = await player.GetStats();
+        sb.AppendLine($"[yellow]Attacker ({player.GetPrimaryKey()}): {attackerStats}[/]");
 
         var monster = state.State.Monsters.First(x => x.GetPrimaryKey() == monsterId);
-        AnsiConsole.MarkupLine("Monster Id: {0}, Title: {1}.", monster.GetPrimaryKey(), monster.GetKeyExtension());
-
         var defenderStats = await monster.GetStats();
-        AnsiConsole.MarkupLine($"[yellow]Defender: {defenderStats}[/]");
+        sb.AppendLine($"[yellow]Defender ({monster.GetKeyExtension()}): {defenderStats}[/]");
 
         var damage = attackerStats.Attack - defenderStats.Defense;
 
         if (damage > 0)
         {
             var isDead = await monster.TakeHit((byte)damage);
+            sb.AppendLine($"[green4 bold]Monster {monster.GetKeyExtension()} has taken {damage} damage.[/]");
+
             if (isDead)
             {
+                sb.AppendLine($"[green4 bold]Monster {monster.GetKeyExtension()} has been killed.[/]");
                 await monster.Kill();
 
                 state.State.Monsters.Remove(monster);
                 await state.WriteStateAsync();
             }
         }
+
+        return sb.ToString();
     }
 
     private static async Task<bool> ExecuteAttack(BattleStats attackerStats, BattleStats defenderStats, IBelligerentGrain defender)

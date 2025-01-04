@@ -14,5 +14,5 @@ public interface IEncounterGrain : IGrainWithGuidCompoundKey
 
     Task<List<MonsterIdentification>> GetMonsters();
 
-    Task AttackMonster(BattleStats attackerStats, Guid monsterId);
+    Task<string> AttackMonster(IPlayerGrain player, Guid monsterId);
 }
