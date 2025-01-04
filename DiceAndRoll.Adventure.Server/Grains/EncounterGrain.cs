@@ -101,7 +101,7 @@ internal sealed class EncounterGrain(
 
         DeactivateOnIdle(); // deactivate the grain when it is not used
 
-        return "[red]The battle has ended.[/]";
+        return "[silver]The battle has ended.[/]";
     }
 
     private async Task RemovePlayer(IPlayerGrain player)
@@ -189,7 +189,7 @@ internal sealed class EncounterGrain(
 
         if (initiativeRow.Current.IsPlayer)
         {
-            sb.AppendLine($"[darkblue]Player[/] [blue]{initiativeRow.Current.Name}[/] [darkblue]is on the move.[/]");
+            sb.AppendLine($"[blue]Player[/] [aqua]{initiativeRow.Current.Name}[/] [blue]is on the move.[/]");
             return new MoveResult { Output = sb.ToString(), Result = MoveResultType.PlayersMove };
         }
 
