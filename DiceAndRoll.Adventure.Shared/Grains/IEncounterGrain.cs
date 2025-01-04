@@ -10,9 +10,9 @@ public interface IEncounterGrain : IGrainWithGuidCompoundKey
 
     Task<string> Leave(IPlayerGrain player);
 
-    internal Task End();
-
     Task<List<MonsterIdentification>> GetMonsters();
 
     Task<string> AttackMonster(IPlayerGrain player, Guid monsterId);
+
+    Task<string> DisplayMoves();
 }

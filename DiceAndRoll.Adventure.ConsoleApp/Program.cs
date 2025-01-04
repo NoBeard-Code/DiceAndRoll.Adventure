@@ -241,33 +241,37 @@ async Task<string> FightPrompt()
 
     do
     {
+        AnsiConsole.MarkupLine(await encounter.DisplayMoves());
+
+        if (await player.AmIDead())
+        {
+            return "[red]You have been killed![/]";
+        }
+
         var monsters = await encounter.GetMonsters();
 
         if (monsters is null || monsters.Count == 0)
         {
-            return "[fuchsia]There are no monsters to fight.[/]";
+            return "[green]All the monsters have been killed![/]";
         }
-        else
+
+        var options = monsters.Select(x => "attack " + x.Title).ToList();
+        options.Add(fleeCommand);
+
+        command = AnsiConsole.Prompt(new SelectionPrompt<string>()
+            .Title("[fuchsia]What will you do?[/]")
+            .AddChoices(options)
+        );
+
+        if (command == fleeCommand)
         {
-            var options = monsters.Select(x => "attack " + x.Title).ToList();
-            options.Add(fleeCommand);
-
-            command = AnsiConsole.Prompt(new SelectionPrompt<string>()
-                .Title("[fuchsia]What will you do?[/]")
-                .AddChoices(options)
-            );
-
-            if (command == fleeCommand)
-            {
-                return await encounter.Leave(player);
-            }
-            else
-            {
-                var option = options.First(x => x == command)[7..];
-                var monster = monsters.First(x => x.Title == option);
-
-                AnsiConsole.MarkupLine(await encounter.AttackMonster(player, monster.Id));
-            }
+            return await encounter.Leave(player);
         }
+
+        var option = options.First(x => x == command)[7..];
+        var monster = monsters.First(x => x.Title == option);
+
+        AnsiConsole.MarkupLine(await encounter.AttackMonster(player, monster.Id));
+
     } while (true);
 }
