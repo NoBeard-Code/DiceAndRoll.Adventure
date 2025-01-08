@@ -68,10 +68,6 @@ await AnsiConsole.Status()
 
 // PLAYER PROMPT
 
-var gameObserver = new GameObserver();
-var gameObserverRef = client.CreateObjectReference<IGameObserver>(gameObserver);
-await game!.Subscribe(gameObserverRef);
-
 AnsiConsole.MarkupLine($"[green]Game successfully loaded.[/]");
 
 var name = AnsiConsole.Prompt(
@@ -96,6 +92,10 @@ AnsiConsole.MarkupLine($"Great [yellow]{name}[/], you will be playing [yellow]{p
 var character = characters.Find(x => x.Title == prompt);
 await player.SetCharacter(name, character!);
 
+var playerObserver = new PlayerObserver();
+var playerObserverRef = client.CreateObjectReference<IPlayerObserver>(playerObserver);
+await player.Subscribe(playerObserverRef);
+
 await AnsiConsole.Status()
     .Spinner(Spinner.Known.Star)
     .SpinnerStyle(Style.Parse("green bold"))
@@ -103,6 +103,10 @@ await AnsiConsole.Status()
     {
         await game!.Join(player);
     });
+
+var gameObserver = new GameObserver();
+var gameObserverRef = client.CreateObjectReference<IGameObserver>(gameObserver);
+await game!.Subscribe(gameObserverRef);
 
 // MAP/GO PROMPT
 
@@ -176,6 +180,8 @@ async Task<string> Run(string command)
 
 async Task<string> LeaveGame()
 {
+    await player.Unsubscribe(playerObserverRef);
+
     await game!.Leave(player);
     return string.Empty;
 }

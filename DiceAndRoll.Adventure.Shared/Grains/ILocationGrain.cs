@@ -1,8 +1,9 @@
 ﻿using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-internal interface ILocationGrain : IGrainWithStringKey
+internal interface ILocationGrain : IGrainWithStringKey, IObservableGrain<ILocationObserver>
 {
     internal Task<LocationInfo?> GetInfo();
 

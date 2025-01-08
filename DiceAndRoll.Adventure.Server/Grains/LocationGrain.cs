@@ -1,5 +1,8 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
+using Microsoft.Extensions.Logging;
+using Orleans.Utilities;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
@@ -18,9 +21,12 @@ internal class LocationState(LocationInfo Info)
 }
 
 internal sealed class LocationGrain(
+    ILogger<LocationGrain> logger, 
     [PersistentState("location", Constants.ORLEANS_GRAIN_STORAGE)] 
     IPersistentState<LocationState> state) : Grain, ILocationGrain
 {
+    private readonly ObserverManager<ILocationObserver> _observerManager = new(TimeSpan.FromMinutes(5), logger);
+
     public async Task Configure(LocationInfo info, List<MonsterInfo> monsters)
     {
         if (state.RecordExists) 
@@ -63,10 +69,14 @@ internal sealed class LocationGrain(
         state.State.Players.Add(player);
 
         await state.WriteStateAsync();
+
+        await _observerManager.Notify(o => o.PlayerEnteredLocation(player.Name!));
     }
 
     public async Task Exit(PlayerInfo player)
     {
+        await _observerManager.Notify(o => o.PlayerExitedLocation(player.Name!));
+
         state.State.Players.RemoveAll(x => x.Key == player.Key);
 
         await state.WriteStateAsync();
@@ -171,5 +181,17 @@ internal sealed class LocationGrain(
             state.State.Encounter = null;
             await state.WriteStateAsync();
         }
+    }
+
+    public Task Subscribe(ILocationObserver observer)
+    {
+        _observerManager.Subscribe(observer, observer);
+        return Task.CompletedTask;
+    }
+
+    public Task Unsubscribe(ILocationObserver observer)
+    {
+        _observerManager.Unsubscribe(observer);
+        return Task.CompletedTask;
     }
 }

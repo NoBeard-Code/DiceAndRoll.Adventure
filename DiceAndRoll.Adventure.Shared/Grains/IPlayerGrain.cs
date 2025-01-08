@@ -1,8 +1,9 @@
 ﻿using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IPlayerGrain : IGrainWithGuidKey, IBelligerentGrain
+public interface IPlayerGrain : IGrainWithGuidKey, IBelligerentGrain, IObservableGrain<IPlayerObserver>, ILocationObserver
 {
     Task SetCharacter(string name, CharacterInfo character);
 

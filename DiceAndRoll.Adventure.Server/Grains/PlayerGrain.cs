@@ -1,5 +1,8 @@
 ﻿using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
+using Microsoft.Extensions.Logging;
+using Orleans.Utilities;
 using Spectre.Console;
 using System.Text;
 
@@ -19,10 +22,12 @@ internal class PlayerState(string name) : BelligerentState
 }
 
 internal sealed class PlayerGrain(
+    ILogger<GameGrain> logger,
     [PersistentState("player", Constants.ORLEANS_GRAIN_STORAGE)]
         IPersistentState<PlayerState> state) : BelligerentGrain<PlayerState>(state), IPlayerGrain
 {
     private readonly IPersistentState<PlayerState> _state = state;
+    private readonly ObserverManager<IPlayerObserver> _observerManager = new(TimeSpan.FromMinutes(5), logger);
 
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
@@ -86,6 +91,8 @@ internal sealed class PlayerGrain(
 
             await _state.State.CurrentLocation.Exit(GetPlayerInfo());
 
+            await _state.State.CurrentLocation.Unsubscribe(this.AsReference<ILocationObserver>());
+
             await SetLocations(destination, direction);
 
             var desc = await destination.Describe(GetPlayerInfo());
@@ -104,6 +111,8 @@ internal sealed class PlayerGrain(
 
     private async Task SetLocations(ILocationGrain location, string? previous = null)
     {
+        await location.Subscribe(this.AsReference<ILocationObserver>());
+
         await location.Enter(GetPlayerInfo());
 
         _state.State.CurrentLocation = location;
@@ -215,6 +224,44 @@ internal sealed class PlayerGrain(
 
         // DeactivateOnIdle();
         // no deactivation, as this will cause another grain to be created!
+    }
+
+    public Task Subscribe(IPlayerObserver observer)
+    {
+        _observerManager.Subscribe(observer, observer);
+        return Task.CompletedTask;
+    }
+
+    public Task Unsubscribe(IPlayerObserver observer)
+    {
+        _observerManager.Unsubscribe(observer);
+        return Task.CompletedTask;
+    }
+
+    public Task PlayerEnteredLocation(string playerName)
+    {
+        if (_state.State.Name != playerName)
+        {
+            var message = $"[maroon]Player [/][olive]{playerName}[/][maroon] entered this location.[/]";
+
+            return _observerManager.Notify(observer => observer.NotifyPlayer(message));
+        }
+
+        // don't notify the player itself
+        return Task.CompletedTask;
+    }
+
+    public Task PlayerExitedLocation(string playerName)
+    {
+        if (_state.State.Name != playerName)
+        {
+            var message = $"[maroon]Player [/][olive]{playerName}[/][maroon] left this location.[/]";
+
+            return _observerManager.Notify(observer => observer.NotifyPlayer(message));
+        }
+
+        // don't notify the player itself
+        return Task.CompletedTask;
     }
 
     #endregion
