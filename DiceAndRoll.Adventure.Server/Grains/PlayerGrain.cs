@@ -142,15 +142,6 @@ internal sealed class PlayerGrain(
         return result;
     }
 
-    public async Task<List<PlayerInfo>?> FindOthers()
-    {
-        if (_state.State.CurrentLocation is null) return null;
-
-        var players = await _state.State.CurrentLocation.GetPlayers();
-
-        return players.Where(x => x.Key != this.GetPrimaryKey()).ToList();
-    }
-
     public async Task<string> Die()
     {
         // TODO: drop all belongings
@@ -172,6 +163,16 @@ internal sealed class PlayerGrain(
     public Task<bool> AmIDead()
     {
         return Task.FromResult(_state.State.Died);
+    }
+
+    [Obsolete]
+    public async Task<List<PlayerInfo>?> FindOthers()
+    {
+        if (_state.State.CurrentLocation is null) return null;
+
+        var players = await _state.State.CurrentLocation.GetPlayers();
+
+        return players.Where(x => x.Key != this.GetPrimaryKey()).ToList();
     }
 
     [Obsolete]

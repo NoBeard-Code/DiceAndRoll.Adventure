@@ -102,7 +102,7 @@ internal static class ConsoleOutput
             .WithMaxValue(5);
     }
 
-    internal static void DisplayStats()
+    internal static void DisplayStats(bool displayAdvancedView = false)
     {
         var panel = new Panel("ttt")
         {
@@ -112,7 +112,8 @@ internal static class ConsoleOutput
 
         };
         AnsiConsole.Write(panel);
-        return;
+
+        if (!displayAdvancedView) return;
 
         var layout = new Layout("Root")
             .SplitColumns(

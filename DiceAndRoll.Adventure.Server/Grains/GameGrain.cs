@@ -1,7 +1,9 @@
 ﻿using DiceAndRoll.Adventure.Server.Services;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
-using Spectre.Console;
+using DiceAndRoll.Adventure.Shared.Observers;
+using Microsoft.Extensions.Logging;
+using Orleans.Utilities;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
 
@@ -14,13 +16,17 @@ internal class GameState
 
 internal sealed class GameGrain(
     ICampaignService campaignService, IMonsterService monsterService,
+    ILogger<GameGrain> logger,
     [PersistentState("game", Constants.ORLEANS_GRAIN_STORAGE)]
     IPersistentState<GameState> state) : Grain, IGameGrain
 {
+    private readonly ObserverManager<IGameObserver> _observerManager = new(TimeSpan.FromMinutes(5), logger);
+
     public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
         var directory = GrainFactory.GetGrain<IDirectoryGrain>(Guid.Empty);
         await directory.RegisterGame(this.GetPrimaryKey());
+
         await base.OnActivateAsync(cancellationToken);
     }
 
@@ -28,6 +34,7 @@ internal sealed class GameGrain(
     {
         var directory = GrainFactory.GetGrain<IDirectoryGrain>(Guid.Empty);
         await directory.UnregisterGame(this.GetPrimaryKey());
+
         await base.OnDeactivateAsync(reason, cancellationToken);
     }
 
@@ -56,17 +63,13 @@ internal sealed class GameGrain(
         Console.WriteLine($"Game configured and started.");
     }
 
-    public Task End()
+    public async Task End()
     {
-        Console.WriteLine($"Game ended.");
-
-        return Task.CompletedTask;
+        await _observerManager.Notify(o => o.GameOver());
     }
 
     public async Task Join(IPlayerGrain player, bool randomLocation = false)
     {
-        AnsiConsole.MarkupLine($"New player joined: {this.GetGrainId()}, {player.GetGrainId()}");
-
         // drop player into a random location?
         var locations = state.State.Locations;
 
@@ -77,16 +80,30 @@ internal sealed class GameGrain(
         await state.WriteStateAsync();
 
         await player.Appear(startLocation.GetPrimaryKeyString());
+
+        await _observerManager.Notify(o => o.PlayerJoined(player.GetGrainId().ToString()));
     }
 
     public async Task Leave(IPlayerGrain player)
     {
-        AnsiConsole.MarkupLine($"Player left: {this.GetGrainId()}, {player.GetGrainId()}");
-
         state.State.Players.Remove(player);
 
         await state.WriteStateAsync();
 
         await player.Die();
+
+        await _observerManager.Notify(o => o.PlayerLeft(player.GetGrainId().ToString()));
+    }
+
+    public Task Subscribe(IGameObserver observer)
+    {
+        _observerManager.Subscribe(observer, observer);
+        return Task.CompletedTask;
+    }
+
+    public Task Unsubscribe(IGameObserver observer)
+    {
+        _observerManager.Unsubscribe(observer);
+        return Task.CompletedTask;
     }
 }

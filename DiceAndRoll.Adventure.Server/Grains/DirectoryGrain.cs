@@ -19,18 +19,16 @@ internal sealed class DirectoryGrain : Grain, IDirectoryGrain, ISingletonGrain
         _observerManager = new ObserverManager<IGameLobby>(TimeSpan.FromMinutes(5), logger);
     }
 
-    public Task RegisterGame(Guid grainId)
+    public async Task RegisterGame(Guid grainId)
     {
         _activeGames.Add(grainId);
-        _observerManager.Notify(o => o.GameRegistered(grainId));
-        return Task.CompletedTask;
+        await _observerManager.Notify(o => o.GameRegistered(grainId));
     }
 
-    public Task UnregisterGame(Guid grainId)
+    public async Task UnregisterGame(Guid grainId)
     {
         _activeGames.Remove(grainId);
-        _observerManager.Notify(o => o.GameRegistered(grainId));
-        return Task.CompletedTask;
+        await _observerManager.Notify(o => o.GameRegistered(grainId));
     }
 
     public Task<List<Guid>> GetActiveGames()

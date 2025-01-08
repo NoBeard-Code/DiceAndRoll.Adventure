@@ -1,6 +1,8 @@
 ﻿using DiceAndRoll.Adventure.Server.Configuration;
+using DiceAndRoll.Adventure.Server.Observers;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Spectre.Console;
@@ -26,9 +28,7 @@ await AnsiConsole.Status()
     });
 
 AnsiConsole.MarkupLine("[green]Microsoft Orleans successfully configured.[/]");
-
-IGameGrain? game = null;
-IGrainFactory? grainFactory = null;
+string campaignFile = string.Empty;
 
 await AnsiConsole.Status()
     .StartAsync("Setting up the game server...", async ctx =>
@@ -36,7 +36,7 @@ await AnsiConsole.Status()
         ctx.Status("Loading campaigns...");
 
         var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-        var campaignFile = Path.Combine(path, "Data/campaign.json");
+        campaignFile = Path.Combine(path, "Data/campaign.json");
 
         if (!File.Exists(campaignFile))
         {
@@ -46,14 +46,19 @@ await AnsiConsole.Status()
 
         AnsiConsole.MarkupLine("Setting up Dice & Roll Adventure game, please wait ...");
 
-        // Initialize the game world
-        grainFactory = host!.Services.GetRequiredService<IGrainFactory>();
-
         Thread.Sleep(1000); // simulate loading time for grain observer to take effect
-
-        game = grainFactory.GetGrain<IGameGrain>(Guid.NewGuid());
-        await game.ConfigureAndStart(campaignFile);
 });
+
+// Initialize the game world
+
+var grainFactory = host!.Services.GetRequiredService<IGrainFactory>();
+var game = grainFactory.GetGrain<IGameGrain>(Guid.NewGuid());
+
+var gameObserver = new GameObserver();
+var gameObserverRef = grainFactory.CreateObjectReference<IGameObserver>(gameObserver);
+await game.Subscribe(gameObserverRef);
+
+await game.ConfigureAndStart(campaignFile);
 
 AnsiConsole.MarkupLine("[green]Game server successfully configured.[/]");
 
@@ -63,7 +68,7 @@ AnsiConsole.MarkupLine("[bold yellow]Now you can invite the players to play the 
 try
 {
     var exit = false;
-    while (exit is false)
+    while (!exit)
     {
         var command = AnsiConsole.Prompt(new TextPrompt<string>("Command:")
             .AddChoices(["stats", "context", "quit"])
@@ -75,7 +80,9 @@ try
 finally
 {
     await game!.End();
+    await game!.Unsubscribe(gameObserverRef);
     AnsiConsole.MarkupLine("[red]Game server shut down![/]");
+
     await host!.StopAsync();
     AnsiConsole.MarkupLine("You can close this window now.");
 }

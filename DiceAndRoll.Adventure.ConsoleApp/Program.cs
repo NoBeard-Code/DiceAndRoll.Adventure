@@ -25,6 +25,8 @@ var client = host.Services.GetRequiredService<IClusterClient>();
 
 await host.StartAsync();
 
+// GAME LOBBY
+
 IDirectoryGrain? directory = null;
 IGameGrain? game = null;
 
@@ -42,20 +44,34 @@ await AnsiConsole.Status()
 
         ctx.Status("Waiting for games to be initialized...");
 
-        await directory.Subscribe(observer);
+        var activeGames = await directory.GetActiveGames();
 
-        while (gameLobby.Games.Count == 0)
+        if (activeGames.Count == 0)
         {
-            await Task.Delay(1000);
+            await directory.Subscribe(observer);
+
+            while (gameLobby.Games.Count == 0)
+            {
+                await Task.Delay(1000);
+            }
+
+            await directory.Unsubscribe(observer);
+            activeGames = gameLobby.Games;
         }
 
-        await directory.Unsubscribe(observer);
-
         ctx.Status("Fetching first game from list of active games...");
-        game = client.GetGrain<IGameGrain>(gameLobby.Games[0]);
+
+        game = client.GetGrain<IGameGrain>(activeGames[0]);
+
+        AnsiConsole.MarkupLine($"[olive]Loading game completed for game: {game.GetPrimaryKey()}.[/]");
     });
 
-AnsiConsole.MarkupLine($"[olive]Loading game completed for game: {game.GetPrimaryKey()}.[/]");
+// PLAYER PROMPT
+
+var gameObserver = new GameObserver();
+var gameObserverRef = client.CreateObjectReference<IGameObserver>(gameObserver);
+await game!.Subscribe(gameObserverRef);
+
 AnsiConsole.MarkupLine($"[green]Game successfully loaded.[/]");
 
 var name = AnsiConsole.Prompt(
@@ -88,6 +104,8 @@ await AnsiConsole.Status()
         await game!.Join(player);
     });
 
+// MAP/GO PROMPT
+
 AnsiConsole.MarkupLine("Let's begin with our story...");
 
 var initialText = $", drenched and exhausted, washes up on the shore of an unfamiliar land. The sand beneath you is coarse, and the air carries a salty tang. As you regain your senses, you notice the landscape around:";
@@ -101,13 +119,12 @@ await AnsiConsole.Status()
         AnsiConsole.MarkupLine(result);
     });
 
-
 var mapActions = new List<string>(["look", "go", "back", "fight", "kill", "quit"]);
 
 string response = "start";
 try
 {
-    while (response is not "")
+    while (response != string.Empty && !gameObserver.IsOver)
     {
         var command = AnsiConsole.Prompt(new TextPrompt<string>("What will you do?")
             .AddChoices(mapActions)
@@ -120,6 +137,7 @@ try
 finally
 {
     AnsiConsole.MarkupLine("[red]Game over![/]");
+    await game!.Unsubscribe(gameObserverRef);
     await host.StopAsync();
 }
 

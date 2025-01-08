@@ -16,11 +16,12 @@ public interface IPlayerGrain : IGrainWithGuidKey, IBelligerentGrain
 
     Task<Dictionary<string, string>?> FindDirections();
 
-    Task<List<PlayerInfo>?> FindOthers();
-
     internal Task<string> Die();
 
     Task<bool> AmIDead();
+
+    [Obsolete]
+    Task<List<PlayerInfo>?> FindOthers();
 
     [Obsolete]
     Task<string> Kill(PlayerInfo targetPlayer);

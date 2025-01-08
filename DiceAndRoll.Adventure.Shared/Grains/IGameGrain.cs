@@ -1,6 +1,8 @@
-﻿namespace DiceAndRoll.Adventure.Shared.Grains;
+﻿using DiceAndRoll.Adventure.Shared.Observers;
 
-public interface IGameGrain : IGrainWithGuidKey
+namespace DiceAndRoll.Adventure.Shared.Grains;
+
+public interface IGameGrain : IGrainWithGuidKey, IObservableGrain<IGameObserver>
 {
     Task ConfigureAndStart(string campaignFile);
 
