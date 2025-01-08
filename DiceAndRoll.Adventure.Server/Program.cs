@@ -49,6 +49,8 @@ await AnsiConsole.Status()
         // Initialize the game world
         grainFactory = host!.Services.GetRequiredService<IGrainFactory>();
 
+        Thread.Sleep(1000); // simulate loading time for grain observer to take effect
+
         game = grainFactory.GetGrain<IGameGrain>(Guid.NewGuid());
         await game.ConfigureAndStart(campaignFile);
 });

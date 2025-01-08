@@ -1,7 +1,9 @@
 ﻿using DiceAndRoll.Adventure.ConsoleApp;
 using DiceAndRoll.Adventure.ConsoleApp.Configuration;
+using DiceAndRoll.Adventure.ConsoleApp.Observers;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -19,9 +21,10 @@ AnsiConsole.MarkupLineInterpolated($"[bold yellow slowblink]{Constants.LOGO_TEXT
 AnsiConsole.MarkupLine("[bold yellow]Dice & Roll Adventure Game || Player Console[/]" + Environment.NewLine);
 AnsiConsole.MarkupLine("[silver]Please await while the console configures...[/]");
 
-bool error = false;
-
 var client = host.Services.GetRequiredService<IClusterClient>();
+
+await host.StartAsync();
+
 IDirectoryGrain? directory = null;
 IGameGrain? game = null;
 
@@ -30,29 +33,27 @@ await AnsiConsole.Status()
     .SpinnerStyle(Style.Parse("green bold"))
     .StartAsync("Searching for a game ...", async ctx =>
     {
-        try
+        directory = client.GetGrain<IDirectoryGrain>(Guid.Empty);
+
+        var gameLobby = new GameLobby();
+        var observer = client.CreateObjectReference<IGameLobby>(gameLobby);
+
+        //var activeGames = await directory.GetActiveGames();
+
+        ctx.Status("Waiting for games to be initialized...");
+
+        await directory.Subscribe(observer);
+
+        while (gameLobby.Games.Count == 0)
         {
-            await host.StartAsync();
-
-            directory = client.GetGrain<IDirectoryGrain>(Guid.Empty);
-
-            var activeGames = await directory.GetActiveGames();
-            if (activeGames == null || activeGames.Count == 0) throw new Exception();
-
-            ctx.Status("Fetching first game from list of active games...");
-            game = client.GetGrain<IGameGrain>(activeGames[0]);
+            await Task.Delay(1000);
         }
-        catch (Exception)
-        {
-            error = true;
-        }
-});
 
-if (error)
-{
-    AnsiConsole.Markup("[red]No game is found.[/]");
-    return;
-}
+        await directory.Unsubscribe(observer);
+
+        ctx.Status("Fetching first game from list of active games...");
+        game = client.GetGrain<IGameGrain>(gameLobby.Games[0]);
+    });
 
 AnsiConsole.MarkupLine($"[olive]Loading game completed for game: {game.GetPrimaryKey()}.[/]");
 AnsiConsole.MarkupLine($"[green]Game successfully loaded.[/]");
