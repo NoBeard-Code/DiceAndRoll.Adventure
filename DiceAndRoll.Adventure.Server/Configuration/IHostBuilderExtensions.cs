@@ -1,6 +1,9 @@
-﻿using DiceAndRoll.Adventure.Server.Services;
+﻿using DiceAndRoll.Adventure.Server.Extensions;
+using DiceAndRoll.Adventure.Server.Services;
 using DiceAndRoll.Adventure.Shared;
+using DiceAndRoll.Adventure.Shared.Extensions;
 using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -21,6 +24,7 @@ internal static class IHostBuilderExtensions
             siloBuilder.UseLocalhostClustering();
             siloBuilder.AddMemoryGrainStorage(Constants.ORLEANS_GRAIN_STORAGE);
             siloBuilder.UseDashboard();
+            siloBuilder.AddGrainExtension<IPublisherExtension<IGameLobby>, PublisherExtension<IGameLobby>>();
         });
 
         builder.ConfigureLogging(logging =>

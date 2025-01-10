@@ -3,7 +3,7 @@ using DiceAndRoll.Adventure.Shared.Observers;
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IDirectoryGrain : IGrainWithGuidKey, IObservableGrain<IGameLobby>
+public interface IDirectoryGrain : IGrainWithGuidKey
 {
     internal Task RegisterGame(Guid gameId);
 

@@ -1,6 +1,7 @@
 ﻿using DiceAndRoll.Adventure.ConsoleApp;
 using DiceAndRoll.Adventure.ConsoleApp.Configuration;
 using DiceAndRoll.Adventure.ConsoleApp.Observers;
+using DiceAndRoll.Adventure.Shared.Extensions;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
 using DiceAndRoll.Adventure.Shared.Observers;
@@ -48,14 +49,15 @@ await AnsiConsole.Status()
 
         if (activeGames.Count == 0)
         {
-            await directory.Subscribe(observer);
+            var directoryExtension = directory.AsReference<IPublisherExtension<IGameLobby>>();
+            await directoryExtension.Subscribe(observer);
 
             while (gameLobby.Games.Count == 0)
             {
                 await Task.Delay(1000);
             }
 
-            await directory.Unsubscribe(observer);
+            await directoryExtension.Unsubscribe(observer);
             activeGames = gameLobby.Games;
         }
 
