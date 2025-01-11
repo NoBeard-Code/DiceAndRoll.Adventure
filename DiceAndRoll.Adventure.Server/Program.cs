@@ -30,8 +30,8 @@ await AnsiConsole.Status()
 AnsiConsole.MarkupLine("[green]Microsoft Orleans successfully configured.[/]");
 string campaignFile = string.Empty;
 
-await AnsiConsole.Status()
-    .StartAsync("Setting up the game server...", async ctx =>
+AnsiConsole.Status()
+    .Start("Setting up the game server...", ctx =>
     {
         ctx.Status("Loading campaigns...");
 

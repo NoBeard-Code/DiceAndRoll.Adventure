@@ -9,6 +9,8 @@ var server = builder.AddProject<Projects.DiceAndRoll_Adventure_Server>("diceandr
 
 var path = new Projects.DiceAndRoll_Adventure_ConsoleApp().ProjectPath;
 var dir = Path.GetDirectoryName(new Projects.DiceAndRoll_Adventure_ConsoleApp().ProjectPath);
+if (!Directory.Exists(dir)) return;
+
 var projectName = Path.GetFileName(path);
 
 builder.AddExecutable("diceandroll-adventure-client-A", "cmd.exe", dir, $"/c start dotnet run --project {projectName}")
