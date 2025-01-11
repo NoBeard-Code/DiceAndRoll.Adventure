@@ -213,7 +213,8 @@ internal sealed class PlayerGrain(
 
         await _state.WriteStateAsync();
 
-        return await _state.State.CurrentLocation.EngageInEncounter(this);
+        var me = this.AsReference<IPlayerGrain>();
+        return await _state.State.CurrentLocation.EngageInEncounter(me);
     }
 
     #region Beligerent members 
