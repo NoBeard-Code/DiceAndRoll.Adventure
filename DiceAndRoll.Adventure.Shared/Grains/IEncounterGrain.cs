@@ -1,8 +1,10 @@
 ﻿using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
+using Orleans.Concurrency;
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IEncounterGrain : IGrainWithGuidCompoundKey
+public interface IEncounterGrain : IGrainWithGuidCompoundKey, IObservableGrain<ITurnObserver>
 {
     internal Task Start(List<MonsterInfo> monsters, IPlayerGrain initiator);
 
@@ -10,9 +12,12 @@ public interface IEncounterGrain : IGrainWithGuidCompoundKey
 
     Task<string> Leave(IPlayerGrain player);
 
+    [ReadOnly, AlwaysInterleave]
     Task<List<MonsterIdentification>> GetMonsters();
 
+    [AlwaysInterleave]
     Task<string> AttackMonster(IPlayerGrain player, Guid monsterId);
 
+    [Obsolete]
     Task<string> DisplayMoves();
 }

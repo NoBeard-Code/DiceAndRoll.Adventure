@@ -1,6 +1,10 @@
 ﻿using DiceAndRoll.Adventure.Server.Configuration;
 using DiceAndRoll.Adventure.Shared.Grains;
 using DiceAndRoll.Adventure.Shared.Models;
+using DiceAndRoll.Adventure.Shared.Observers;
+using Microsoft.Extensions.Logging;
+using Orleans.Concurrency;
+using Orleans.Utilities;
 using Spectre.Console;
 using System.Text;
 
@@ -21,10 +25,15 @@ internal class EncounterState
     public CurrentList<Belligerent> InitiativeRow { get; set; } = [];
 }
 
+[Reentrant]
 internal sealed class EncounterGrain(
+    ILogger<EncounterGrain> logger,
     [PersistentState("encounter", Constants.ORLEANS_GRAIN_STORAGE)]
     IPersistentState<EncounterState> state) : Grain, IEncounterGrain
 {
+    private readonly ObserverManager<ITurnObserver> _observerManager = new(TimeSpan.FromMinutes(5), logger);
+    private readonly EventWaitHandle _waitHandle = new(false, EventResetMode.AutoReset);
+
     public async Task Start(List<MonsterInfo> monsters, IPlayerGrain initiator)
     {
         if (state.RecordExists)
@@ -54,7 +63,11 @@ internal sealed class EncounterGrain(
 
         await state.WriteStateAsync();
 
-        // start the battle with calling DisplayMoves method
+        // prior behavior: start the battle with calling DisplayMoves method
+
+        //Thread.Sleep(2000); // for better synchronization
+
+        Task.Factory.StartNew(() => BattleLoop());
     }
 
     public Task<string> Join(IPlayerGrain player)
@@ -130,6 +143,7 @@ internal sealed class EncounterGrain(
             .Select(x => new MonsterIdentification(x.GetPrimaryKey(), x.GetKeyExtension())).ToList());            
     }
 
+    [Obsolete]
     public async Task<string> DisplayMoves()
     {
         // display the moves of the players and monsters
@@ -150,6 +164,51 @@ internal sealed class EncounterGrain(
         } while (true);
 
         return sb.ToString();
+    }
+
+    [OneWay]
+    private async Task BattleLoop()
+    {
+        MoveResult? moveResult;
+        do
+        {
+            //Thread.Sleep(1000); // for better synchronization and more realistic feeling
+
+            moveResult = await ExecuteNextMove();
+            AnsiConsole.MarkupLine(moveResult.Output);
+
+            await _observerManager.Notify(o => o.TurnFinished(moveResult.Output));
+
+            if (moveResult.Result == MoveResultType.MonstersMove)
+            {
+                AnsiConsole.MarkupLine($"It was a monster's move, continuing.");
+                continue;
+            }
+            else if (moveResult.Result == MoveResultType.PlayersMove) 
+            {
+                AnsiConsole.MarkupLine($"Notifying player to perform the next turn (wait for 5000 ms).");
+
+                var monsters = await GetMonsters();
+                await _observerManager.Notify(o => o.YourTurn(monsters));
+
+                bool signaled = _waitHandle.WaitOne(5000*100); // wait for the player to make a move for 5 seconds
+
+                if (!signaled)
+                {
+                    // player did not make a move, skip the player's turn
+                    AnsiConsole.MarkupLine($"Player did not responded.");
+
+                    moveResult = new MoveResult { Output = "Player did not respond, so the turn was skipped.", Result = MoveResultType.Skipped };
+                    AnsiConsole.MarkupLine($"Turn finished ({moveResult.Result}): {moveResult.Output}");
+
+                    await _observerManager.Notify(o => o.TurnFinished(moveResult.Output));
+                    continue;
+                }
+
+                AnsiConsole.MarkupLine($"Player responded.");
+            }
+
+        } while (moveResult.Result != MoveResultType.BattleEnded);
     }
 
     private async Task<MoveResult> ExecuteNextMove()
@@ -189,6 +248,9 @@ internal sealed class EncounterGrain(
 
         if (initiativeRow.Current.IsPlayer)
         {
+            if (state.State.Round == 1)
+                Thread.Sleep(5000); // for better synchronization
+
             sb.AppendLine($"[blue]Player[/] [aqua]{initiativeRow.Current.Name}[/] [blue]is on the move.[/]");
             return new MoveResult { Output = sb.ToString(), Result = MoveResultType.PlayersMove };
         }
@@ -231,6 +293,8 @@ internal sealed class EncounterGrain(
             }
         }
 
+        _waitHandle.Set(); // signal that the player has made a move
+
         return sb.ToString();
     }
 
@@ -263,5 +327,17 @@ internal sealed class EncounterGrain(
         }
 
         return sb.ToString();
+    }
+
+    public Task Subscribe(ITurnObserver observer)
+    {
+        _observerManager.Subscribe(observer, observer);
+        return Task.CompletedTask;
+    }
+
+    public Task Unsubscribe(ITurnObserver observer)
+    {
+        _observerManager.Unsubscribe(observer);
+        return Task.CompletedTask;
     }
 }

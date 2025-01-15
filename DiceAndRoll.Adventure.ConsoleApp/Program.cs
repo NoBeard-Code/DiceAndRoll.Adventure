@@ -166,7 +166,7 @@ async Task<string> Run(string command)
             await player.GoBack(),
 
         "fight" =>
-            await FightPrompt(),
+            await InteractiveFightPrompt(),
 
         "kill" =>
             await KillPrompt(),
@@ -251,6 +251,7 @@ async Task<string> KillPrompt()
     }
 }
 
+[Obsolete("This method is deprecated. Use InteractiveFightPrompt() instead.")]
 async Task<string> FightPrompt()
 {
     var encounter = await player.Fight();
@@ -297,6 +298,80 @@ async Task<string> FightPrompt()
         var monster = monsters.First(x => x.Title == option);
 
         AnsiConsole.MarkupLine(await encounter.AttackMonster(player, monster.Id));
+
+    } while (true);
+}
+
+async Task<string> InteractiveFightPrompt()
+{
+    var encounter = await player.Fight();
+    if (encounter == null)
+    {
+        return "[fuchsia]You are not in a combat situation.[/]";
+    }
+
+    AnsiConsole.MarkupLine("[red bold]You have been engaged in combat![/]");
+
+    List<MonsterIdentification>? monsters = null;
+
+    var waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+
+    var turnObserver = new TurnObserver(
+        (output) => { // turn finished
+            AnsiConsole.MarkupLine(output);
+        }, (List<MonsterIdentification>? output) => { // your turn
+            monsters = output;
+            waitHandle.Set(); // signal the main thread to continue
+        });
+    var turnObserverRef = client.CreateObjectReference<ITurnObserver>(turnObserver);
+    await encounter.Subscribe(turnObserverRef);
+
+    const string fleeCommand = "FLEE!";
+    var command = string.Empty;
+
+    do
+    {
+        AnsiConsole.MarkupLine("[bold rapidblink]Waiting for your turn...[/]");
+        waitHandle.WaitOne(); // wait for the signal from the observer
+
+        AnsiConsole.MarkupLine("It's my turn, I'm on the move.");
+
+        if (await player.AmIDead())
+        {
+            return "[red]You have been killed![/]";
+        }
+
+        monsters = await encounter.GetMonsters();
+
+        if (monsters is null || monsters.Count == 0)
+        {
+            return "[green]All the monsters have been killed![/]";
+        }
+
+        var options = monsters.Select(x => "attack " + x.Title).ToList();
+        options.Add(fleeCommand);
+
+        command = AnsiConsole.Prompt(new SelectionPrompt<string>()
+            .Title("[fuchsia]What will you do? (you have 5 seconds to respond)[/]")
+            .AddChoices(options)
+        );
+
+        if (command == fleeCommand)
+        {
+            // clean up and leave the encounter
+            waitHandle.Dispose(); 
+            await encounter.Unsubscribe(turnObserverRef);
+            return await encounter.Leave(player);
+        }
+
+        // TODO: implement other turn options; for now, attack monster is the only option
+
+        var option = options.First(x => x == command)[7..];
+        var monster = monsters.First(x => x.Title == option);
+
+        var reference = encounter.AsReference<IEncounterGrain>();
+
+        AnsiConsole.MarkupLine(await reference.AttackMonster(player, monster.Id));
 
     } while (true);
 }
