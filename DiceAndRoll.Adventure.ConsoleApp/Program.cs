@@ -168,9 +168,6 @@ async Task<string> Run(string command)
         "fight" =>
             await InteractiveFightPrompt(),
 
-        "kill" =>
-            await KillPrompt(),
-
         "quit" =>
             await LeaveGame(),
 
@@ -225,83 +222,6 @@ async Task<string> GoPrompt()
     }
 }
 
-async Task<string> KillPrompt()
-{
-    var others = await player.FindOthers();
-
-    if (others is null || others.Count == 0)
-    {
-        return "[grey]There's no one there.[/]";
-    }
-    else
-    {
-        others.Add(new PlayerInfo(Guid.Empty, "cancel"));
-
-        var command = AnsiConsole.Prompt(new TextPrompt<string?>("[fuchsia]Kill whom?[/]")
-            .AddChoices(others.Select(x => x.Name))
-            .DefaultValue(others.First().Name));
-
-        if (command != "cancel")
-        {
-            var choice = others.First(x => x.Name == command);
-            return await player.Kill(choice);
-        }
-
-        return "It's good to see that there's still some humanity out there ...";
-    }
-}
-
-[Obsolete("This method is deprecated. Use InteractiveFightPrompt() instead.")]
-async Task<string> FightPrompt()
-{
-    var encounter = await player.Fight();
-    if (encounter == null)
-    {
-        return "[fuchsia]You are not in a combat situation.[/]";
-    }
-
-    AnsiConsole.MarkupLine("[red bold rapidblink]You have been engaged in combat![/]");
-
-    const string fleeCommand = "FLEE!";
-    var command = string.Empty;
-
-    do
-    {
-        AnsiConsole.MarkupLine(await encounter.DisplayMoves());
-
-        if (await player.AmIDead())
-        {
-            return "[red]You have been killed![/]";
-        }
-
-        var monsters = await encounter.GetMonsters();
-
-        if (monsters is null || monsters.Count == 0)
-        {
-            return "[green]All the monsters have been killed![/]";
-        }
-
-        var options = monsters.Select(x => "attack " + x.Title).ToList();
-        options.Add(fleeCommand);
-
-        command = AnsiConsole.Prompt(new SelectionPrompt<string>()
-            .Title("[fuchsia]What will you do?[/]")
-            .AddChoices(options)
-        );
-
-        if (command == fleeCommand)
-        {
-            return await encounter.Leave(player);
-        }
-
-        var option = options.First(x => x == command)[7..];
-        var monster = monsters.First(x => x.Title == option);
-
-        AnsiConsole.MarkupLine(await encounter.AttackMonster(player, monster.Id));
-
-    } while (true);
-}
-
 async Task<string> InteractiveFightPrompt()
 {
     var encounter = await player.Fight();
@@ -312,21 +232,23 @@ async Task<string> InteractiveFightPrompt()
 
     AnsiConsole.MarkupLine("[red bold]You have been engaged in combat![/]");
 
-    List<MonsterIdentification>? monsters = null;
-
     var waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+    var cts = new CancellationTokenSource();
 
-    var turnObserver = new TurnObserver(
+    var turnObserver = new TurnObserver(player.GetPrimaryKey(),
         (output) => { // turn finished
             AnsiConsole.MarkupLine(output);
-        }, (List<MonsterIdentification>? output) => { // your turn
-            monsters = output;
+        }, () => { // your turn
             waitHandle.Set(); // signal the main thread to continue
+        }, () => // abandon turn
+        {
+            cts.Cancel(); // cancel prompt
         });
     var turnObserverRef = client.CreateObjectReference<ITurnObserver>(turnObserver);
     await encounter.Subscribe(turnObserverRef);
 
-    const string fleeCommand = "FLEE!";
+    var fleeCommand = "FLEE!";
+    var skipCommand = "Skip turn";
     var command = string.Empty;
 
     do
@@ -338,10 +260,13 @@ async Task<string> InteractiveFightPrompt()
 
         if (await player.AmIDead())
         {
+            // clean up and leave the encounter
+            waitHandle.Dispose();
+            await encounter.Unsubscribe(turnObserverRef);
             return "[red]You have been killed![/]";
         }
 
-        monsters = await encounter.GetMonsters();
+        var monsters = await encounter.GetMonsters();
 
         if (monsters is null || monsters.Count == 0)
         {
@@ -349,12 +274,23 @@ async Task<string> InteractiveFightPrompt()
         }
 
         var options = monsters.Select(x => "attack " + x.Title).ToList();
+        options.Add(skipCommand);
         options.Add(fleeCommand);
 
-        command = AnsiConsole.Prompt(new SelectionPrompt<string>()
-            .Title("[fuchsia]What will you do? (you have 5 seconds to respond)[/]")
-            .AddChoices(options)
-        );
+        try
+        {
+            var result = Task.Run(() =>
+            command = AnsiConsole.Prompt(new SelectionPrompt<string>()
+                .Title("[fuchsia]What will you do? (you have 5 seconds to respond)[/]")
+                .AddChoices(options)
+            ), cts.Token);
+
+            result.Wait(cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            continue;
+        }
 
         if (command == fleeCommand)
         {
@@ -363,15 +299,19 @@ async Task<string> InteractiveFightPrompt()
             await encounter.Unsubscribe(turnObserverRef);
             return await encounter.Leave(player);
         }
+        else if (command == skipCommand)
+        {
+            await encounter.SkipTurn(player);
+        }
+        else
+        {
+            // TODO: implement other turn options; for now, attack monster is the only option
 
-        // TODO: implement other turn options; for now, attack monster is the only option
+            var option = options.First(x => x == command)[7..];
+            var monster = monsters.First(x => x.Title == option);
 
-        var option = options.First(x => x == command)[7..];
-        var monster = monsters.First(x => x.Title == option);
-
-        var reference = encounter.AsReference<IEncounterGrain>();
-
-        AnsiConsole.MarkupLine(await reference.AttackMonster(player, monster.Id));
+            AnsiConsole.MarkupLine(await encounter.AttackMonster(player, monster.Id));
+        }
 
     } while (true);
 }

@@ -1,9 +1,8 @@
-﻿using DiceAndRoll.Adventure.Shared.Models;
-using DiceAndRoll.Adventure.Shared.Observers;
+﻿using DiceAndRoll.Adventure.Shared.Observers;
 
 namespace DiceAndRoll.Adventure.ConsoleApp.Observers;
 
-internal class TurnObserver(Action<string> turnFinished, Action<List<MonsterIdentification>?> yourTurnAction) : ITurnObserver
+internal class TurnObserver(Guid me, Action<string> turnFinished, Action yourTurnAction, Action abandonTurnAction) : ITurnObserver
 {
     public Task TurnFinished(string output)
     {
@@ -11,15 +10,19 @@ internal class TurnObserver(Action<string> turnFinished, Action<List<MonsterIden
         return Task.CompletedTask;
     }
 
-    //public Task YourTurn()
-    //{
-    //    yourTurnAction();
-    //    return Task.CompletedTask;
-    //}
-
-    public Task YourTurn(List<MonsterIdentification>? monsters)
+    public Task YourTurn(Guid playerId)
     {
-        yourTurnAction(monsters);
+        if (me == playerId)
+            yourTurnAction();
+
+        return Task.CompletedTask;
+    }
+
+    public Task AbandonTurn(Guid playerId)
+    {
+        if (me == playerId)
+            abandonTurnAction();
+
         return Task.CompletedTask;
     }
 }

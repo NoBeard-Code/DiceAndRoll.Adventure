@@ -18,6 +18,6 @@ public interface IEncounterGrain : IGrainWithGuidCompoundKey, IObservableGrain<I
     [AlwaysInterleave]
     Task<string> AttackMonster(IPlayerGrain player, Guid monsterId);
 
-    [Obsolete]
-    Task<string> DisplayMoves();
+    [AlwaysInterleave]
+    Task SkipTurn(IPlayerGrain player);
 }

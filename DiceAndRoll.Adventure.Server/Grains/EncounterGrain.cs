@@ -4,6 +4,7 @@ using DiceAndRoll.Adventure.Shared.Models;
 using DiceAndRoll.Adventure.Shared.Observers;
 using Microsoft.Extensions.Logging;
 using Orleans.Concurrency;
+using Orleans.Timers;
 using Orleans.Utilities;
 using Spectre.Console;
 using System.Text;
@@ -28,11 +29,35 @@ internal class EncounterState
 [Reentrant]
 internal sealed class EncounterGrain(
     ILogger<EncounterGrain> logger,
+    ITimerRegistry timerRegistry,
     [PersistentState("encounter", Constants.ORLEANS_GRAIN_STORAGE)]
     IPersistentState<EncounterState> state) : Grain, IEncounterGrain
 {
     private readonly ObserverManager<ITurnObserver> _observerManager = new(TimeSpan.FromMinutes(5), logger);
-    private readonly EventWaitHandle _waitHandle = new(false, EventResetMode.AutoReset);
+    private IGrainTimer? _battleTimer;
+
+    public override Task OnActivateAsync(CancellationToken cancellationToken)
+    {
+        var options = new GrainTimerCreationOptions        
+        {
+            DueTime = Timeout.InfiniteTimeSpan, // prevent timer from starting automatically
+            Period = Timeout.InfiniteTimeSpan, 
+            Interleave = true // ensure that the timer is interleaved with other work
+        };
+
+        _battleTimer = timerRegistry.RegisterGrainTimer(GrainContext, ExecuteNextTurn, this, options);
+
+        return base.OnActivateAsync(cancellationToken);
+    }
+
+    public override Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
+    {
+        _battleTimer?.Dispose();
+
+        return base.OnDeactivateAsync(reason, cancellationToken);
+    }
+
+    //private readonly EventWaitHandle _waitHandle = new(false, EventResetMode.AutoReset);
 
     public async Task Start(List<MonsterInfo> monsters, IPlayerGrain initiator)
     {
@@ -63,11 +88,11 @@ internal sealed class EncounterGrain(
 
         await state.WriteStateAsync();
 
-        // prior behavior: start the battle with calling DisplayMoves method
+        // start grain timer for the initial move (and therefore, starting the battle)
 
-        //Thread.Sleep(2000); // for better synchronization
+        _battleTimer?.Change(TimeSpan.FromMilliseconds(2000), Timeout.InfiniteTimeSpan);
 
-        Task.Factory.StartNew(() => BattleLoop());
+        //Task.Factory.StartNew(() => BattleLoop()).Unwrap();
     }
 
     public Task<string> Join(IPlayerGrain player)
@@ -125,6 +150,8 @@ internal sealed class EncounterGrain(
         state.State.Players.Remove(player);
 
         await state.WriteStateAsync();
+
+        await _observerManager.Notify(o => o.YourTurn(player.GetPrimaryKey()));
     }
 
     private async Task RemoveMonster(IMonsterGrain monster)
@@ -143,83 +170,43 @@ internal sealed class EncounterGrain(
             .Select(x => new MonsterIdentification(x.GetPrimaryKey(), x.GetKeyExtension())).ToList());            
     }
 
-    [Obsolete]
-    public async Task<string> DisplayMoves()
+    private MoveResult? _lastMove;
+
+    private async Task ExecuteNextTurn(EncounterGrain thisGrain, CancellationToken cancellationToken)
     {
-        // display the moves of the players and monsters
-        var sb = new StringBuilder();
-        do
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        var move = new MoveResult { Result = MoveResultType.Undetermined };
+
+        if (state.State.Players.Count == 0 || state.State.Monsters.Count == 0) // either all monsters are defeated or all players are dead!
         {
-            var move = await ExecuteNextMove();
-
-            sb.Append(move.Output);
-
-            if (move.Result == MoveResultType.MonstersMove)
-            {
-                continue;
-            }
-
-            break;
-
-        } while (true);
-
-        return sb.ToString();
-    }
-
-    [OneWay]
-    private async Task BattleLoop()
-    {
-        MoveResult? moveResult;
-        do
-        {
-            //Thread.Sleep(1000); // for better synchronization and more realistic feeling
-
-            moveResult = await ExecuteNextMove();
-            AnsiConsole.MarkupLine(moveResult.Output);
-
-            await _observerManager.Notify(o => o.TurnFinished(moveResult.Output));
-
-            if (moveResult.Result == MoveResultType.MonstersMove)
-            {
-                AnsiConsole.MarkupLine($"It was a monster's move, continuing.");
-                continue;
-            }
-            else if (moveResult.Result == MoveResultType.PlayersMove) 
-            {
-                AnsiConsole.MarkupLine($"Notifying player to perform the next turn (wait for 5000 ms).");
-
-                var monsters = await GetMonsters();
-                await _observerManager.Notify(o => o.YourTurn(monsters));
-
-                bool signaled = _waitHandle.WaitOne(5000*100); // wait for the player to make a move for 5 seconds
-
-                if (!signaled)
-                {
-                    // player did not make a move, skip the player's turn
-                    AnsiConsole.MarkupLine($"Player did not responded.");
-
-                    moveResult = new MoveResult { Output = "Player did not respond, so the turn was skipped.", Result = MoveResultType.Skipped };
-                    AnsiConsole.MarkupLine($"Turn finished ({moveResult.Result}): {moveResult.Output}");
-
-                    await _observerManager.Notify(o => o.TurnFinished(moveResult.Output));
-                    continue;
-                }
-
-                AnsiConsole.MarkupLine($"Player responded.");
-            }
-
-        } while (moveResult.Result != MoveResultType.BattleEnded);
-    }
-
-    private async Task<MoveResult> ExecuteNextMove()
-    {
-        if (state.State.Players.Count == 0 || state.State.Monsters.Count == 0)
-        {   
-            // no one is on the move - either all monsters are defeated or all players are dead!
-            return new MoveResult { Output = await End(), Result = MoveResultType.BattleEnded };
+            move = new MoveResult { Output = await End(), Result = MoveResultType.BattleEnded };
+            return; // this is the end of the battle loop
         }
 
         // battle still continues
+
+        if (_lastMove?.Result == MoveResultType.PlayersMove)
+        {
+            // player did not make a move, skip the player's turn
+            AnsiConsole.MarkupLine($"Player did not respond.");
+
+            move = new MoveResult
+            {
+                Output = "Player did not respond, so the turn was skipped.",
+                Result = MoveResultType.Skipped,
+                BelligerentId = _lastMove.BelligerentId
+            };
+            AnsiConsole.MarkupLine($"Turn finished ({move.Result}): {move.Output}");
+
+            await _observerManager.Notify(o => o.TurnFinished(move.Output));
+            await _observerManager.Notify(o => o.AbandonTurn(move.BelligerentId.GetValueOrDefault()));
+
+            // immediately start the next turn
+        }
+
+        // set round, turn and initiative row
         var sb = new StringBuilder();
         var initiativeRow = state.State.InitiativeRow;
 
@@ -237,9 +224,10 @@ internal sealed class EncounterGrain(
             initiativeRow.MoveNext();
         }
 
-        if (initiativeRow.Current == null)
+        if (initiativeRow.Current == null) // also an indication of the end as there are no belligerents left in the initiative row
         {
-            return new MoveResult { Output = sb.ToString(), Result = MoveResultType.BattleEnded };
+            move = new MoveResult { Output = sb.ToString(), Result = MoveResultType.BattleEnded };
+            return; // this is the end of the battle loop
         }
 
         // next turn
@@ -249,24 +237,49 @@ internal sealed class EncounterGrain(
         if (initiativeRow.Current.IsPlayer)
         {
             if (state.State.Round == 1)
-                Thread.Sleep(5000); // for better synchronization
+            {
+                await Task.Delay(1000, cancellationToken); // for better synchronization
+            }
 
             sb.AppendLine($"[blue]Player[/] [aqua]{initiativeRow.Current.Name}[/] [blue]is on the move.[/]");
-            return new MoveResult { Output = sb.ToString(), Result = MoveResultType.PlayersMove };
+            move = new MoveResult { Output = sb.ToString(), Result = MoveResultType.PlayersMove, BelligerentId = initiativeRow.Current.Id };
+
+            _battleTimer?.Change(TimeSpan.FromMilliseconds(5000), Timeout.InfiniteTimeSpan);
+
+            AnsiConsole.MarkupLine($"Notifying player to perform the next turn (wait for 5000 ms).");
+
+            await _observerManager.Notify(o => o.YourTurn(move.BelligerentId.GetValueOrDefault()));
+        }
+        else
+        {
+            // monster's turn:
+            sb.AppendLine($"[darkgreen]Monster[/] [green]{initiativeRow.Current.Name}[/] [darkgreen]is on the move.[/]");
+
+            await Task.Delay(1000, cancellationToken);
+
+            var monster = state.State.Monsters.First(x => x.GetPrimaryKey() == initiativeRow.Current.Id);
+
+            sb.AppendLine(await SimulateMonsterMove(monster));
+
+            await Task.Delay(2500, cancellationToken);
+
+            move = new MoveResult { Output = sb.ToString(), Result = MoveResultType.MonstersMove, BelligerentId = initiativeRow.Current.Id };
+
+            _battleTimer?.Change(TimeSpan.FromMilliseconds(1500), Timeout.InfiniteTimeSpan);
+
+            AnsiConsole.MarkupLine($"It was a monster's move, continuing.");
         }
 
-        // monster's turn:
-        sb.AppendLine($"[darkgreen]Monster[/] [green]{initiativeRow.Current.Name}[/] [darkgreen]is on the move.[/]");
+        _lastMove = move;
+        AnsiConsole.MarkupLine(move.Output);
 
-        var monster = state.State.Monsters.First(x => x.GetPrimaryKey() == initiativeRow.Current.Id);
-
-        sb.AppendLine(await SimulateMonsterMove(monster));
-
-        return new MoveResult { Output = sb.ToString(), Result = MoveResultType.MonstersMove };
+        await _observerManager.Notify(o => o.TurnFinished(move.Output));
     }
 
     public async Task<string> AttackMonster(IPlayerGrain player, Guid monsterId)
     {
+        _lastMove!.Result = MoveResultType.Played; // signal that the turn is being executed
+
         // get the attacker stats for the attack, get the target stats for the defense, calculate damage, apply it
         var sb = new StringBuilder();
 
@@ -293,7 +306,8 @@ internal sealed class EncounterGrain(
             }
         }
 
-        _waitHandle.Set(); // signal that the player has made a move
+        //// signal that the player has made a move
+        _battleTimer?.Change(TimeSpan.FromMilliseconds(1000), Timeout.InfiniteTimeSpan); 
 
         return sb.ToString();
     }
@@ -327,6 +341,28 @@ internal sealed class EncounterGrain(
         }
 
         return sb.ToString();
+    }
+
+    public async Task SkipTurn(IPlayerGrain player)
+    {
+        AnsiConsole.MarkupLine($"Player skipped the turn.");
+
+        var moveResult = new MoveResult
+        {
+            Output = "Player intentionally skipped the turn.",
+            Result = MoveResultType.Skipped,
+            BelligerentId = player.GetPrimaryKey()
+        };
+
+        AnsiConsole.MarkupLine($"Turn finished ({moveResult.Result}): {moveResult.Output}");
+
+        await _observerManager.Notify(o => o.TurnFinished(moveResult.Output));
+
+        _lastMove = moveResult;
+        AnsiConsole.MarkupLine(moveResult.Output);
+
+        // signal that the player has made a move
+        _battleTimer?.Change(TimeSpan.FromMilliseconds(500), Timeout.InfiniteTimeSpan);
     }
 
     public Task Subscribe(ITurnObserver observer)

@@ -2,8 +2,10 @@
 
 public enum MoveResultType
 {
+    Undetermined = 0,
     MonstersMove,
     PlayersMove,
+    Played,
     Skipped,
     BattleEnded
 }
@@ -11,7 +13,9 @@ public enum MoveResultType
 [GenerateSerializer]
 public record MoveResult
 {
-    public required string Output { get; set; }
+    public Guid? BelligerentId { get; set; } 
 
-    public MoveResultType Result { get; set; }
+    public string? Output { get; set; }
+
+    public required MoveResultType Result { get; set; }
 }
