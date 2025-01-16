@@ -7,6 +7,7 @@ using Orleans.Concurrency;
 using Orleans.Timers;
 using Orleans.Utilities;
 using Spectre.Console;
+using System.Diagnostics;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
@@ -57,8 +58,6 @@ internal sealed class EncounterGrain(
         return base.OnDeactivateAsync(reason, cancellationToken);
     }
 
-    //private readonly EventWaitHandle _waitHandle = new(false, EventResetMode.AutoReset);
-
     public async Task Start(List<MonsterInfo> monsters, IPlayerGrain initiator)
     {
         if (state.RecordExists)
@@ -66,7 +65,7 @@ internal sealed class EncounterGrain(
 
         // create the list of belligerents, set the players and monsters, shuffle the initiative row
 
-        CurrentList<Belligerent> beligerents = [ new Belligerent(initiator.GetPrimaryKey(), "Player 1", true)]; // TODO: later, do the composite key
+        CurrentList<Belligerent> beligerents = [ new Belligerent(initiator.GetPrimaryKey(), initiator.GetKeyExtension(), true)];
 
         List<string> monsterNames = [];
         foreach (var monster in monsters)
@@ -89,10 +88,12 @@ internal sealed class EncounterGrain(
         await state.WriteStateAsync();
 
         // start grain timer for the initial move (and therefore, starting the battle)
+        NextPing(2000);
+    }
 
-        _battleTimer?.Change(TimeSpan.FromMilliseconds(2000), Timeout.InfiniteTimeSpan);
-
-        //Task.Factory.StartNew(() => BattleLoop()).Unwrap();
+    private void NextPing(long inMiliseconds)
+    {
+        _battleTimer?.Change(TimeSpan.FromMilliseconds(inMiliseconds), Timeout.InfiniteTimeSpan);
     }
 
     public Task<string> Join(IPlayerGrain player)
@@ -101,7 +102,7 @@ internal sealed class EncounterGrain(
 
         state.State.Players.Add(player);
 
-        state.State.InitiativeRow.Add(new Belligerent(player.GetPrimaryKey(), $"Player {state.State.Players.Count}", true));
+        state.State.InitiativeRow.Add(new Belligerent(player.GetPrimaryKey(), $"Player {player.GetKeyExtension()}", true));
 
         return Task.FromResult("Player has joined the fight.");
     }
@@ -112,13 +113,13 @@ internal sealed class EncounterGrain(
         if (state.State.Players.Count <= 1)
         {
             await End();
-            return "[maroon bold]You left encounter. Battle is over.[/]"; 
+            return "[maroon bold]You left the encounter. Battle is over.[/]"; 
         }
 
         // if there is still some players, remove player from list of players, remove it from the initiative row
         await RemovePlayer(player);
 
-        return "[maroon bold]You left encounter. Battle continues.[/]"; 
+        return "[maroon bold]You left the encounter. Battle continues.[/]"; 
     }
 
     private async Task<string> End()
@@ -226,6 +227,8 @@ internal sealed class EncounterGrain(
 
         if (initiativeRow.Current == null) // also an indication of the end as there are no belligerents left in the initiative row
         {
+            Debugger.Break(); // this should not happen!!
+
             move = new MoveResult { Output = sb.ToString(), Result = MoveResultType.BattleEnded };
             return; // this is the end of the battle loop
         }
@@ -244,30 +247,27 @@ internal sealed class EncounterGrain(
             sb.AppendLine($"[blue]Player[/] [aqua]{initiativeRow.Current.Name}[/] [blue]is on the move.[/]");
             move = new MoveResult { Output = sb.ToString(), Result = MoveResultType.PlayersMove, BelligerentId = initiativeRow.Current.Id };
 
-            _battleTimer?.Change(TimeSpan.FromMilliseconds(5000), Timeout.InfiniteTimeSpan);
-
             AnsiConsole.MarkupLine($"Notifying player to perform the next turn (wait for 5000 ms).");
 
             await _observerManager.Notify(o => o.YourTurn(move.BelligerentId.GetValueOrDefault()));
+
+            NextPing(5000);
         }
         else
         {
             // monster's turn:
             sb.AppendLine($"[darkgreen]Monster[/] [green]{initiativeRow.Current.Name}[/] [darkgreen]is on the move.[/]");
 
-            await Task.Delay(1000, cancellationToken);
-
             var monster = state.State.Monsters.First(x => x.GetPrimaryKey() == initiativeRow.Current.Id);
+            var randomPlayer = state.State.Players[Random.Shared.Next(0, state.State.Players.Count - 1)];
 
-            sb.AppendLine(await SimulateMonsterMove(monster));
+            sb.AppendLine(await ExecuteAttack(monster, randomPlayer));
 
             await Task.Delay(2500, cancellationToken);
 
             move = new MoveResult { Output = sb.ToString(), Result = MoveResultType.MonstersMove, BelligerentId = initiativeRow.Current.Id };
 
-            _battleTimer?.Change(TimeSpan.FromMilliseconds(1500), Timeout.InfiniteTimeSpan);
-
-            AnsiConsole.MarkupLine($"It was a monster's move, continuing.");
+            NextPing(1500);
         }
 
         _lastMove = move;
@@ -280,13 +280,18 @@ internal sealed class EncounterGrain(
     {
         _lastMove!.Result = MoveResultType.Played; // signal that the turn is being executed
 
-        // get the attacker stats for the attack, get the target stats for the defense, calculate damage, apply it
+        var defender = state.State.Monsters.First(x => x.GetPrimaryKey() == monsterId);
+
+        return await ExecuteAttack(player, defender);
+    }
+
+    private async Task<string> ExecuteAttack(IBelligerentGrain attacker, IBelligerentGrain defender)
+    {
         var sb = new StringBuilder();
 
-        var attackerStats = await player.GetStats();
-        sb.AppendLine($"[yellow]Attacker ({player.GetPrimaryKey()}): {attackerStats}[/]");
+        var attackerStats = await attacker.GetStats();
+        sb.AppendLine($"[yellow]Attacker ({attacker.GetKeyExtension()}): {attackerStats}[/]");
 
-        var defender = state.State.Monsters.First(x => x.GetPrimaryKey() == monsterId);
         var defenderStats = await defender.GetStats();
         sb.AppendLine($"[yellow]Defender ({defender.GetKeyExtension()}): {defenderStats}[/]");
 
@@ -295,48 +300,21 @@ internal sealed class EncounterGrain(
         if (damage > 0)
         {
             var isDead = await defender.TakeHit((byte)damage);
-            sb.AppendLine($"[maroon]Monster {defender.GetKeyExtension()} has taken {damage} damage.[/]");
+            sb.AppendLine($"[maroon]Belligerent {defender.GetPrimaryKey()} has taken {damage} damage.[/]");
 
             if (isDead)
             {
-                sb.AppendLine($"[maroon bold]Monster {defender.GetKeyExtension()} has been killed.[/]");
+                sb.AppendLine($"[maroon bold]Belligerent {defender.GetPrimaryKey()} has been killed.[/]");
                 await defender.Kill();
 
-                await RemoveMonster(defender);
-            }
-        }
-
-        //// signal that the player has made a move
-        _battleTimer?.Change(TimeSpan.FromMilliseconds(1000), Timeout.InfiniteTimeSpan); 
-
-        return sb.ToString();
-    }
-
-    private async Task<string> SimulateMonsterMove(IMonsterGrain monster)
-    {
-        // get the monster stats, get the player stats, calculate damage, apply it
-        var sb = new StringBuilder();
-
-        var attackerStats = await monster.GetStats();
-        sb.AppendLine($"[yellow]Attacker ({monster.GetKeyExtension()}): {attackerStats}[/]");
-
-        var defender = state.State.Players[Random.Shared.Next(0, state.State.Players.Count - 1)];
-        var defenderStats = await defender.GetStats();
-        sb.AppendLine($"[yellow]Defender ({defender.GetPrimaryKey()}): {defenderStats}[/]");
-
-        var damage = attackerStats.Attack - defenderStats.Defense;
-
-        if (damage > 0)
-        {
-            var isDead = await defender.TakeHit((byte)damage);
-            sb.AppendLine($"[maroon]Player {defender.GetPrimaryKey()} has taken {damage} damage.[/]");
-
-            if (isDead)
-            {
-                sb.AppendLine($"[maroon bold]Player {defender.GetPrimaryKey()} has been killed.[/]");
-                await defender.Kill();
-
-                await RemovePlayer(defender);
+                if (defender is IPlayerGrain player)
+                {
+                    await RemovePlayer(player);
+                }
+                else if (defender is IMonsterGrain monster)
+                {
+                    await RemoveMonster(monster);
+                }
             }
         }
 
@@ -362,7 +340,7 @@ internal sealed class EncounterGrain(
         AnsiConsole.MarkupLine(moveResult.Output);
 
         // signal that the player has made a move
-        _battleTimer?.Change(TimeSpan.FromMilliseconds(500), Timeout.InfiniteTimeSpan);
+        NextPing(500);
     }
 
     public Task Subscribe(ITurnObserver observer)

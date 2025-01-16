@@ -41,7 +41,7 @@ public class GameTests
         var client = cluster.Client;
 
         var name = Guid.NewGuid();
-        var player = client.GetGrain<IPlayerGrain>(name);
+        var player = client.GetGrain<IPlayerGrain>(name, name.ToString());
 
         await player.SetCharacter(name.ToString(), character!);
 
@@ -80,7 +80,7 @@ public class GameTests
             var client = cluster.Client;
 
             var name = Guid.NewGuid();
-            var player = client.GetGrain<IPlayerGrain>(name);
+            var player = client.GetGrain<IPlayerGrain>(name, name.ToString());
 
             players.Add(player);
 

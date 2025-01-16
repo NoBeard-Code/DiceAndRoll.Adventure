@@ -2,7 +2,7 @@
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IBelligerentGrain
+public interface IBelligerentGrain : IGrainWithGuidCompoundKey
 {
     internal Task<BattleStats> GetStats();
 

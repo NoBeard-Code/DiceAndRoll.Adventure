@@ -77,7 +77,7 @@ var characters = await directory!.GetCharacters();
 
 ConsoleOutput.DisplayCharacters(characters);
 
-var player = client.GetGrain<IPlayerGrain>(Guid.NewGuid());
+var player = client.GetGrain<IPlayerGrain>(Guid.NewGuid(), name);
 
 var prompt = AnsiConsole.Prompt(
     new SelectionPrompt<string>()
@@ -123,7 +123,7 @@ await AnsiConsole.Status()
         AnsiConsole.MarkupLine(result);
     });
 
-var mapActions = new List<string>(["look", "go", "back", "fight", "kill", "quit"]);
+var mapActions = new List<string>(["look", "go", "back", "fight", "quit"]);
 
 string response = "start";
 try

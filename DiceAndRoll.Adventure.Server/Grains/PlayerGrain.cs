@@ -187,7 +187,7 @@ internal sealed class PlayerGrain(
     [Obsolete]
     public async Task<string> Kill(PlayerInfo targetPlayer)
     {
-        var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key);
+        var target = GrainFactory.GetGrain<IPlayerGrain>(targetPlayer.Key, targetPlayer.Name);
 
         await target.Die();
 

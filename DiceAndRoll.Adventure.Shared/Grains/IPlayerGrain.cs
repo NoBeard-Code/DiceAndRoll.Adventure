@@ -3,7 +3,7 @@ using DiceAndRoll.Adventure.Shared.Observers;
 
 namespace DiceAndRoll.Adventure.Shared.Grains;
 
-public interface IPlayerGrain : IGrainWithGuidKey, IBelligerentGrain, IObservableGrain<IPlayerObserver>, ILocationObserver
+public interface IPlayerGrain : IBelligerentGrain, IObservableGrain<IPlayerObserver>, ILocationObserver
 {
     Task SetCharacter(string name, CharacterInfo character);
 
