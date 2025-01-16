@@ -7,7 +7,6 @@ using Orleans.Concurrency;
 using Orleans.Timers;
 using Orleans.Utilities;
 using Spectre.Console;
-using System.Diagnostics;
 using System.Text;
 
 namespace DiceAndRoll.Adventure.Server.Grains;
@@ -175,14 +174,14 @@ internal sealed class EncounterGrain(
 
     private async Task ExecuteNextTurn(EncounterGrain thisGrain, CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (cancellationToken.IsCancellationRequested || _lastMove?.Result == MoveResultType.BattleEnded)
             return;
 
         var move = new MoveResult { Result = MoveResultType.Undetermined };
 
         if (state.State.Players.Count == 0 || state.State.Monsters.Count == 0) // either all monsters are defeated or all players are dead!
         {
-            move = new MoveResult { Output = await End(), Result = MoveResultType.BattleEnded };
+            await End();
             return; // this is the end of the battle loop
         }
 
@@ -190,18 +189,15 @@ internal sealed class EncounterGrain(
 
         if (_lastMove?.Result == MoveResultType.PlayersMove)
         {
-            // player did not make a move, skip the player's turn
-            AnsiConsole.MarkupLine($"Player did not respond.");
-
             move = new MoveResult
             {
                 Output = "Player did not respond, so the turn was skipped.",
                 Result = MoveResultType.Skipped,
                 BelligerentId = _lastMove.BelligerentId
             };
-            AnsiConsole.MarkupLine($"Turn finished ({move.Result}): {move.Output}");
 
-            await _observerManager.Notify(o => o.TurnFinished(move.Output));
+            await NotifyEndOfTurn(move);
+
             await _observerManager.Notify(o => o.AbandonTurn(move.BelligerentId.GetValueOrDefault()));
 
             // immediately start the next turn
@@ -226,12 +222,7 @@ internal sealed class EncounterGrain(
         }
 
         if (initiativeRow.Current == null) // also an indication of the end as there are no belligerents left in the initiative row
-        {
-            Debugger.Break(); // this should not happen!!
-
-            move = new MoveResult { Output = sb.ToString(), Result = MoveResultType.BattleEnded };
-            return; // this is the end of the battle loop
-        }
+            return;
 
         // next turn
         state.State.Turn++;
@@ -240,11 +231,10 @@ internal sealed class EncounterGrain(
         if (initiativeRow.Current.IsPlayer)
         {
             if (state.State.Round == 1)
-            {
                 await Task.Delay(1000, cancellationToken); // for better synchronization
-            }
 
             sb.AppendLine($"[blue]Player[/] [aqua]{initiativeRow.Current.Name}[/] [blue]is on the move.[/]");
+
             move = new MoveResult { Output = sb.ToString(), Result = MoveResultType.PlayersMove, BelligerentId = initiativeRow.Current.Id };
 
             AnsiConsole.MarkupLine($"Notifying player to perform the next turn (wait for 5000 ms).");
@@ -263,17 +253,12 @@ internal sealed class EncounterGrain(
 
             sb.AppendLine(await ExecuteAttack(monster, randomPlayer));
 
-            await Task.Delay(2500, cancellationToken);
-
             move = new MoveResult { Output = sb.ToString(), Result = MoveResultType.MonstersMove, BelligerentId = initiativeRow.Current.Id };
 
             NextPing(1500);
         }
 
-        _lastMove = move;
-        AnsiConsole.MarkupLine(move.Output);
-
-        await _observerManager.Notify(o => o.TurnFinished(move.Output));
+        await NotifyEndOfTurn(move);
     }
 
     public async Task<string> AttackMonster(IPlayerGrain player, Guid monsterId)
@@ -332,15 +317,19 @@ internal sealed class EncounterGrain(
             BelligerentId = player.GetPrimaryKey()
         };
 
+        await NotifyEndOfTurn(moveResult);
+
+        // signal that the player has made a move
+        NextPing(500);
+    }
+
+    private async Task NotifyEndOfTurn(MoveResult moveResult)
+    {
         AnsiConsole.MarkupLine($"Turn finished ({moveResult.Result}): {moveResult.Output}");
 
         await _observerManager.Notify(o => o.TurnFinished(moveResult.Output));
 
         _lastMove = moveResult;
-        AnsiConsole.MarkupLine(moveResult.Output);
-
-        // signal that the player has made a move
-        NextPing(500);
     }
 
     public Task Subscribe(ITurnObserver observer)

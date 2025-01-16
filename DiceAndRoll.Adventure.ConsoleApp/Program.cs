@@ -237,7 +237,7 @@ async Task<string> InteractiveFightPrompt()
 
     var turnObserver = new TurnObserver(player.GetPrimaryKey(),
         (output) => { // turn finished
-            AnsiConsole.MarkupLine(output);
+            AnsiConsole.Markup(output);
         }, () => { // your turn
             waitHandle.Set(); // signal the main thread to continue
         }, () => // abandon turn
